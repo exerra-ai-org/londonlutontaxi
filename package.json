@@ -1,8 +1,15 @@
 {
   "name": "taxi-concierge",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "bun run src/index.ts",
+    "dev": "bun run --filter '*' dev",
+    "dev:backend": "bun run --filter backend dev",
+    "dev:frontend": "bun run --filter frontend dev",
+    "db:push": "bun run --filter backend db:push",
+    "db:seed": "bun run --filter backend db:seed",
     "format": "treefmt",
     "lint": "prettier --check ."
   },
