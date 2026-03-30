@@ -1,1 +1,21 @@
+@import "./styles/theme.css";
 @import "tailwindcss";
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family:
+      "Inter",
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      sans-serif;
+    color: var(--color-neutral-800);
+    background-color: var(--color-neutral-50);
+  }
+}
