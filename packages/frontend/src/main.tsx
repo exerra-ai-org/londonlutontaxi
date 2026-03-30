@@ -11,16 +11,9 @@ import Login from "./pages/Login";
 import BookingFlow from "./pages/BookingFlow";
 import BookingHistory from "./pages/BookingHistory";
 
-// Admin — placeholders until Phase 1d
-function RideTimeline() {
-  return <h1 className="text-xl font-semibold">Admin: Ride Timeline</h1>;
-}
-function DriverManagement() {
-  return <h1 className="text-xl font-semibold">Admin: Drivers</h1>;
-}
-function CouponManagement() {
-  return <h1 className="text-xl font-semibold">Admin: Coupons</h1>;
-}
+import RideTimeline from "./pages/admin/RideTimeline";
+import DriverManagement from "./pages/admin/DriverManagement";
+import CouponManagement from "./pages/admin/CouponManagement";
 
 // Driver — placeholder until Phase 1e
 function MyRides() {
