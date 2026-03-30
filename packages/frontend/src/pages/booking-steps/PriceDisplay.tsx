@@ -3,6 +3,7 @@ import type { BookingData } from "../BookingFlow";
 import { getQuote } from "../../api/bookings";
 import { formatPrice } from "../../lib/format";
 import { Skeleton } from "../../components/Skeleton";
+import { IconMapPin } from "../../components/icons";
 
 interface Props {
   data: Partial<BookingData>;
@@ -23,11 +24,23 @@ export default function PriceDisplay({ data, onNext, onBack }: Props) {
   useEffect(() => {
     setLoading(true);
     setError("");
-    getQuote(data.pickupAddress || "", data.dropoffAddress || "")
+    getQuote(data.pickupAddress || "", data.dropoffAddress || "", {
+      fromLat: data.pickupLat,
+      fromLon: data.pickupLon,
+      toLat: data.dropoffLat,
+      toLon: data.dropoffLon,
+    })
       .then((q) => setQuote(q))
       .catch((err) => setError(err.message || "Failed to get price"))
       .finally(() => setLoading(false));
-  }, [data.pickupAddress, data.dropoffAddress]);
+  }, [
+    data.pickupAddress,
+    data.dropoffAddress,
+    data.pickupLat,
+    data.pickupLon,
+    data.dropoffLat,
+    data.dropoffLon,
+  ]);
 
   if (loading) {
     return (
@@ -41,7 +54,7 @@ export default function PriceDisplay({ data, onNext, onBack }: Props) {
   if (error || !quote) {
     return (
       <div className="space-y-4">
-        <div className="bg-red-50 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg border border-red-100">
           {error || "No pricing available for this route"}
         </div>
         <button
@@ -58,8 +71,8 @@ export default function PriceDisplay({ data, onNext, onBack }: Props) {
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Your Quote</h2>
 
-      <div className="bg-white border rounded-lg p-6 text-center">
-        <div className="text-3xl font-bold text-blue-700">
+      <div className="bg-white border rounded-xl p-6 text-center">
+        <div className="text-4xl font-bold text-blue-700">
           {formatPrice(quote.pricePence)}
         </div>
         {quote.routeName && (
@@ -75,14 +88,21 @@ export default function PriceDisplay({ data, onNext, onBack }: Props) {
         )}
       </div>
 
-      <div className="text-sm text-gray-500">
-        {data.pickupAddress} → {data.dropoffAddress}
+      <div className="bg-gray-50 rounded-xl p-3 space-y-1.5 text-sm">
+        <div className="flex items-start gap-2">
+          <IconMapPin className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+          <span className="text-gray-700">{data.pickupAddress}</span>
+        </div>
+        <div className="flex items-start gap-2">
+          <IconMapPin className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+          <span className="text-gray-700">{data.dropoffAddress}</span>
+        </div>
       </div>
 
       <div className="flex gap-3">
         <button
           onClick={onBack}
-          className="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50"
+          className="flex-1 border border-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-colors"
         >
           Back
         </button>
@@ -96,7 +116,7 @@ export default function PriceDisplay({ data, onNext, onBack }: Props) {
               finalPricePence: quote.pricePence,
             })
           }
-          className="flex-1 bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700"
+          className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
         >
           Continue
         </button>

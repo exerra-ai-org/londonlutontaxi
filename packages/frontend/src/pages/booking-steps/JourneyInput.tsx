@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { BookingData } from "../BookingFlow";
+import AddressAutocomplete from "../../components/maps/AddressAutocomplete";
 
 interface Props {
   data: Partial<BookingData>;
@@ -8,7 +9,19 @@ interface Props {
 
 export default function JourneyInput({ data, onNext }: Props) {
   const [pickup, setPickup] = useState(data.pickupAddress || "");
+  const [pickupLat, setPickupLat] = useState<number | undefined>(
+    data.pickupLat ?? undefined,
+  );
+  const [pickupLon, setPickupLon] = useState<number | undefined>(
+    data.pickupLon ?? undefined,
+  );
   const [dropoff, setDropoff] = useState(data.dropoffAddress || "");
+  const [dropoffLat, setDropoffLat] = useState<number | undefined>(
+    data.dropoffLat ?? undefined,
+  );
+  const [dropoffLon, setDropoffLon] = useState<number | undefined>(
+    data.dropoffLon ?? undefined,
+  );
   const [date, setDate] = useState(data.date || "");
   const [time, setTime] = useState(data.time || "");
 
@@ -16,13 +29,16 @@ export default function JourneyInput({ data, onNext }: Props) {
     e.preventDefault();
     onNext({
       pickupAddress: pickup,
+      pickupLat,
+      pickupLon,
       dropoffAddress: dropoff,
+      dropoffLat,
+      dropoffLon,
       date,
       time,
     });
   }
 
-  // Minimum date is today
   const today = new Date().toISOString().split("T")[0];
 
   return (
@@ -33,13 +49,16 @@ export default function JourneyInput({ data, onNext }: Props) {
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Pickup Location
         </label>
-        <input
-          type="text"
+        <AddressAutocomplete
           value={pickup}
-          onChange={(e) => setPickup(e.target.value)}
+          onChange={(address, coords) => {
+            setPickup(address);
+            setPickupLat(coords?.lat);
+            setPickupLon(coords?.lon);
+          }}
           required
-          className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="e.g. Heathrow Airport"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
@@ -47,13 +66,16 @@ export default function JourneyInput({ data, onNext }: Props) {
         <label className="block text-sm font-medium text-gray-700 mb-1">
           Drop-off Location
         </label>
-        <input
-          type="text"
+        <AddressAutocomplete
           value={dropoff}
-          onChange={(e) => setDropoff(e.target.value)}
+          onChange={(address, coords) => {
+            setDropoff(address);
+            setDropoffLat(coords?.lat);
+            setDropoffLon(coords?.lon);
+          }}
           required
-          className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="e.g. Central London"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
 
@@ -68,7 +90,7 @@ export default function JourneyInput({ data, onNext }: Props) {
             onChange={(e) => setDate(e.target.value)}
             required
             min={today}
-            className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div>
@@ -80,14 +102,14 @@ export default function JourneyInput({ data, onNext }: Props) {
             value={time}
             onChange={(e) => setTime(e.target.value)}
             required
-            className="w-full border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
       <button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700"
+        className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
       >
         Get Quote
       </button>

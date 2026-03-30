@@ -27,6 +27,10 @@ export default function Confirmation({ data, onBack, onReset }: Props) {
         dropoffAddress: data.dropoffAddress,
         scheduledAt,
         couponCode: data.couponCode,
+        pickupLat: data.pickupLat,
+        pickupLon: data.pickupLon,
+        dropoffLat: data.dropoffLat,
+        dropoffLon: data.dropoffLon,
       });
       setSuccess(true);
     } catch (err) {

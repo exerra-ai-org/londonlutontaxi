@@ -8,7 +8,11 @@ import Confirmation from "./booking-steps/Confirmation";
 
 export interface BookingData {
   pickupAddress: string;
+  pickupLat?: number;
+  pickupLon?: number;
   dropoffAddress: string;
+  dropoffLat?: number;
+  dropoffLon?: number;
   date: string;
   time: string;
   pricePence: number;
