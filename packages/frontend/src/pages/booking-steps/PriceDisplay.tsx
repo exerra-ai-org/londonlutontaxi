@@ -61,7 +61,7 @@ export default function PriceDisplay({ data, onNext, onBack }: Props) {
   if (error || !quote) {
     return (
       <div className="space-y-4">
-        <div className="bg-red-50 text-red-700 px-4 py-3 rounded-lg border border-red-100">
+        <div className="glass-card !border-red-300/40 px-4 py-3 text-red-600 text-sm">
           {error || "No pricing available for this route"}
         </div>
         <button
@@ -76,10 +76,10 @@ export default function PriceDisplay({ data, onNext, onBack }: Props) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Your Quote</h2>
+      <h2 className="text-xl font-semibold text-gray-900">Your Quote</h2>
 
-      <div className="bg-white border rounded-xl p-6 text-center">
-        <div className="text-4xl font-bold text-blue-700">
+      <div className="glass-card p-6 text-center">
+        <div className="text-4xl font-bold text-blue-600">
           {formatPrice(quote.pricePence)}
         </div>
         {quote.routeName && (
@@ -89,7 +89,7 @@ export default function PriceDisplay({ data, onNext, onBack }: Props) {
           {quote.routeType === "fixed" ? "Fixed route" : "Zone-based"} pricing
         </div>
         {quote.isAirport && (
-          <span className="inline-block mt-2 bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">
+          <span className="inline-block mt-2 bg-amber-100/80 text-amber-700 text-xs px-2 py-0.5 rounded-full font-medium">
             AIRPORT
           </span>
         )}
@@ -103,7 +103,7 @@ export default function PriceDisplay({ data, onNext, onBack }: Props) {
         />
       )}
 
-      <div className="bg-gray-50 rounded-xl p-3 space-y-1.5 text-sm">
+      <div className="glass-card p-3 space-y-1.5 text-sm">
         <div className="flex items-start gap-2">
           <IconMapPin className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
           <span className="text-gray-700">{data.pickupAddress}</span>
@@ -115,10 +115,7 @@ export default function PriceDisplay({ data, onNext, onBack }: Props) {
       </div>
 
       <div className="flex gap-3">
-        <button
-          onClick={onBack}
-          className="flex-1 border border-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-        >
+        <button onClick={onBack} className="btn-secondary w-full flex-1">
           Back
         </button>
         <button
@@ -131,7 +128,7 @@ export default function PriceDisplay({ data, onNext, onBack }: Props) {
               finalPricePence: quote.pricePence,
             })
           }
-          className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+          className="btn-primary w-full flex-1"
         >
           Continue
         </button>

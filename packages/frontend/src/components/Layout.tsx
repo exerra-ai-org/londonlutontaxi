@@ -1,4 +1,10 @@
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import {
+  Link,
+  NavLink,
+  Outlet,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
   IconCar,
@@ -25,8 +31,8 @@ function NavItem({
       className={({ isActive }) =>
         `flex flex-col items-center gap-0.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
           isActive
-            ? "text-blue-600 bg-blue-50"
-            : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+            ? "text-blue-600 bg-blue-100/80"
+            : "text-gray-500 hover:text-gray-900 hover:bg-white/60"
         }`
       }
     >
@@ -52,8 +58,8 @@ function DesktopNavItem({
       className={({ isActive }) =>
         `text-sm font-medium px-3 py-1.5 rounded-lg transition-colors ${
           isActive
-            ? "text-blue-700 bg-blue-50"
-            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            ? "text-blue-700 bg-blue-100/80"
+            : "text-gray-500 hover:text-gray-900 hover:bg-white/60"
         }`
       }
     >
@@ -65,6 +71,8 @@ function DesktopNavItem({
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isLandingPage = location.pathname === "/";
 
   async function handleLogout() {
     await logout();
@@ -72,14 +80,16 @@ export default function Layout() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-16 md:pb-0">
+    <div
+      className={isLandingPage ? "min-h-screen" : "min-h-screen pb-16 md:pb-0"}
+    >
       {/* Top nav */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-40">
+      <nav className="bg-white/70 backdrop-blur-xl border-b border-black/5 sticky top-0 z-40">
         <div className="mx-auto max-w-5xl px-4 h-14 flex items-center justify-between">
           {/* Brand */}
           <Link
             to="/"
-            className="flex items-center gap-2 text-base font-bold text-blue-700"
+            className="flex items-center gap-2 text-base font-bold text-blue-600"
           >
             <IconCar className="w-5 h-5" />
             <span className="hidden sm:inline">Taxi Concierge</span>
@@ -123,10 +133,7 @@ export default function Layout() {
                 </button>
               </>
             ) : (
-              <Link
-                to="/login"
-                className="text-sm bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-colors"
-              >
+              <Link to="/login" className="btn-primary text-sm !py-1.5 !px-4">
                 Login
               </Link>
             )}
@@ -135,13 +142,13 @@ export default function Layout() {
       </nav>
 
       {/* Page content */}
-      <main className="mx-auto max-w-5xl px-4 py-6">
+      <main className={isLandingPage ? "" : "mx-auto max-w-5xl px-4 py-6"}>
         <Outlet />
       </main>
 
-      {/* Mobile bottom nav — only shown when logged in */}
-      {user && (
-        <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-40 safe-area-inset-bottom">
+      {/* Mobile bottom nav */}
+      {user && !isLandingPage && (
+        <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white/80 backdrop-blur-xl border-t border-black/5 z-40 safe-area-inset-bottom">
           <div className="flex items-center justify-around px-2 py-1">
             {user.role === "customer" && (
               <>

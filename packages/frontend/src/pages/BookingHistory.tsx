@@ -86,17 +86,14 @@ export default function BookingHistory() {
   if (bookings.length === 0) {
     return (
       <div className="text-center py-16">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4">
-          <IconCar className="w-8 h-8 text-blue-400" />
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-500/15 mb-4">
+          <IconCar className="w-8 h-8 text-blue-600" />
         </div>
         <p className="text-gray-500 mb-1 font-medium">No bookings yet</p>
         <p className="text-sm text-gray-400 mb-6">
           Book your first ride to get started
         </p>
-        <button
-          onClick={() => navigate("/")}
-          className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-        >
+        <button onClick={() => navigate("/")} className="btn-primary text-sm">
           Book a Ride
         </button>
       </div>
@@ -109,7 +106,7 @@ export default function BookingHistory() {
       {bookings.map((b, i) => (
         <div
           key={b.id}
-          className={`bg-white border border-l-4 rounded-lg p-4 hover-lift animate-stagger-in ${STATUS_LEFT_BORDER[b.status] ?? "border-l-gray-200"}`}
+          className={`glass-card border-l-4 p-4 hover-lift animate-stagger-in ${STATUS_LEFT_BORDER[b.status] ?? "border-l-gray-200"}`}
           style={{ animationDelay: `${i * 60}ms` }}
         >
           <div className="flex items-start justify-between">
@@ -125,10 +122,10 @@ export default function BookingHistory() {
               <div className="text-xs text-gray-400">
                 {formatDate(b.scheduledAt)}
               </div>
-              <div className="text-sm font-semibold text-blue-700">
+              <div className="text-sm font-semibold text-blue-600">
                 {formatPrice(b.pricePence)}
                 {b.discountPence > 0 && (
-                  <span className="text-green-600 text-xs ml-1.5 font-normal">
+                  <span className="text-green-700 text-xs ml-1.5 font-normal">
                     (-{formatPrice(b.discountPence)})
                   </span>
                 )}
@@ -141,23 +138,23 @@ export default function BookingHistory() {
                 {statusLabel(b.status)}
               </span>
               {b.isAirport && (
-                <span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">
+                <span className="bg-amber-100/80 text-amber-700 text-xs px-2 py-0.5 rounded-full font-medium">
                   AIRPORT
                 </span>
               )}
             </div>
           </div>
-          <div className="flex gap-3 mt-3 pt-3 border-t border-gray-50">
+          <div className="flex gap-3 mt-3 pt-3 border-t border-white/10">
             <button
               onClick={() => handleRebook(b)}
-              className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+              className="text-xs text-blue-600 hover:text-blue-500 font-medium"
             >
               Rebook
             </button>
             {(b.status === "scheduled" || b.status === "assigned") && (
               <button
                 onClick={() => handleCancel(b.id)}
-                className="text-xs text-red-500 hover:text-red-700 font-medium"
+                className="text-xs text-red-600 hover:text-red-500 font-medium"
               >
                 Cancel
               </button>
@@ -165,7 +162,7 @@ export default function BookingHistory() {
             {b.status === "completed" && (
               <button
                 onClick={() => setReviewBookingId(b.id)}
-                className="text-xs text-green-600 hover:text-green-800 font-medium"
+                className="text-xs text-green-700 hover:text-green-600 font-medium"
               >
                 Leave Review
               </button>

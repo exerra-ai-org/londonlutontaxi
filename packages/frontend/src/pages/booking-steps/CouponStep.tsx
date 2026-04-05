@@ -64,7 +64,7 @@ export default function CouponStep({ pricePence, onNext, onBack }: Props) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Have a Coupon?</h2>
+      <h2 className="text-xl font-semibold text-gray-900">Have a Coupon?</h2>
 
       <div className="flex gap-2">
         <input
@@ -72,25 +72,25 @@ export default function CouponStep({ pricePence, onNext, onBack }: Props) {
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           placeholder="Enter coupon code"
-          className="flex-1 border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="input-glass w-full flex-1"
         />
         <button
           onClick={handleApply}
           disabled={loading || !code.trim()}
-          className="bg-gray-800 text-white px-4 py-2 rounded text-sm font-medium hover:bg-gray-900 disabled:opacity-50"
+          className="bg-gray-100 text-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-100 disabled:opacity-50"
         >
           {loading ? "..." : "Apply"}
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-700 px-4 py-2 rounded text-sm">
+        <div className="glass-card !border-red-300/40 px-4 py-3 text-red-600 text-sm">
           {error}
         </div>
       )}
 
       {applied && (
-        <div className="bg-green-50 text-green-800 px-4 py-3 rounded text-sm">
+        <div className="glass-card !border-green-300/40 px-4 py-3 text-green-700 text-sm">
           <div className="font-medium">Coupon applied: {applied.code}</div>
           <div>
             {applied.discountType === "percentage"
@@ -106,16 +106,10 @@ export default function CouponStep({ pricePence, onNext, onBack }: Props) {
       )}
 
       <div className="flex gap-3">
-        <button
-          onClick={onBack}
-          className="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50"
-        >
+        <button onClick={onBack} className="btn-secondary w-full flex-1">
           Back
         </button>
-        <button
-          onClick={handleNext}
-          className="flex-1 bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700"
-        >
+        <button onClick={handleNext} className="btn-primary w-full flex-1">
           {applied ? "Continue" : "Skip"}
         </button>
       </div>

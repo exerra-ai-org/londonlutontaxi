@@ -80,14 +80,11 @@ export default function Confirmation({ data, onBack, onReset }: Props) {
         <div className="flex gap-3 justify-center">
           <button
             onClick={() => navigate("/bookings")}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+            className="btn-primary px-4"
           >
             View My Bookings
           </button>
-          <button
-            onClick={onReset}
-            className="border border-gray-200 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-gray-50 transition-colors"
-          >
+          <button onClick={onReset} className="btn-secondary px-4">
             Book Another
           </button>
         </div>
@@ -99,9 +96,9 @@ export default function Confirmation({ data, onBack, onReset }: Props) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-semibold">Confirm Booking</h2>
+      <h2 className="text-xl font-semibold text-gray-900">Confirm Booking</h2>
 
-      <div className="bg-white border rounded-xl p-4 space-y-3">
+      <div className="glass-card p-4 space-y-3">
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Pickup</span>
           <span className="font-medium text-right max-w-[60%]">
@@ -118,7 +115,7 @@ export default function Confirmation({ data, onBack, onReset }: Props) {
           <span className="text-gray-500">Date & Time</span>
           <span className="font-medium">{formatDate(scheduledDate)}</span>
         </div>
-        <hr className="border-gray-100" />
+        <hr className="border-white/10" />
         <div className="flex justify-between text-sm">
           <span className="text-gray-500">Price</span>
           <span>{formatPrice(data.pricePence)}</span>
@@ -129,18 +126,18 @@ export default function Confirmation({ data, onBack, onReset }: Props) {
               <span>Discount ({data.couponCode})</span>
               <span>-{formatPrice(data.discountPence)}</span>
             </div>
-            <hr className="border-gray-100" />
+            <hr className="border-white/10" />
           </>
         )}
         <div className="flex justify-between font-semibold">
           <span>Total</span>
-          <span className="text-blue-700">
+          <span className="text-blue-600">
             {formatPrice(data.finalPricePence)}
           </span>
         </div>
         {data.isAirport && (
           <div className="text-center">
-            <span className="inline-block bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">
+            <span className="inline-block bg-amber-100/80 text-amber-700 text-xs px-2 py-0.5 rounded-full font-medium">
               AIRPORT TRANSFER
             </span>
           </div>
@@ -148,22 +145,19 @@ export default function Confirmation({ data, onBack, onReset }: Props) {
       </div>
 
       {error && (
-        <div className="bg-red-50 text-red-700 px-4 py-2 rounded-lg text-sm border border-red-100">
+        <div className="glass-card !border-red-300/40 px-4 py-3 text-red-600 text-sm">
           {error}
         </div>
       )}
 
       <div className="flex gap-3">
-        <button
-          onClick={onBack}
-          className="flex-1 border border-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-        >
+        <button onClick={onBack} className="btn-secondary w-full flex-1">
           Back
         </button>
         <button
           onClick={handleConfirm}
           disabled={loading}
-          className="flex-1 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors btn-press"
+          className="btn-primary w-full flex-1 disabled:opacity-50"
         >
           {loading ? (
             <span className="flex items-center justify-center gap-2">

@@ -34,18 +34,18 @@ export default function Modal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in">
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
       <div
-        className={`relative bg-white rounded-xl shadow-2xl ${SIZE_CLASSES[size]} w-full mx-4 max-h-[90vh] overflow-y-auto animate-scale-in`}
+        className={`relative bg-white/80 backdrop-blur-2xl border border-black/8 rounded-2xl shadow-2xl ${SIZE_CLASSES[size]} w-full mx-4 max-h-[90vh] overflow-y-auto animate-scale-in`}
       >
         {title && (
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-black/8">
             <h2 className="font-semibold text-gray-900">{title}</h2>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-blue-50/80 rounded-lg transition-colors"
             >
               ×
             </button>

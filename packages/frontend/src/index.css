@@ -15,7 +15,8 @@
       system-ui,
       -apple-system,
       sans-serif;
-    color: var(--color-neutral-800);
-    background-color: var(--color-neutral-50);
+    color: #374151;
+    background: linear-gradient(135deg, #e8f0fe 0%, #eef2ff 50%, #f0f4ff 100%);
+    min-height: 100vh;
   }
 }

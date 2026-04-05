@@ -56,7 +56,7 @@ export default function ReviewForm({ bookingId, onClose }: Props) {
     <Modal isOpen={!!bookingId} onClose={onClose} title="Leave a Review">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm border border-red-100">
+          <div className="glass-card !border-red-300/40 px-3 py-2 text-red-600 text-sm">
             {error}
           </div>
         )}
@@ -75,14 +75,14 @@ export default function ReviewForm({ bookingId, onClose }: Props) {
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={3}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+            className="input-glass w-full"
             placeholder="How was your ride?"
           />
         </div>
         <button
           type="submit"
           disabled={loading || !rating}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors btn-press"
+          className="btn-primary w-full"
         >
           {loading ? "Submitting..." : "Submit Review"}
         </button>

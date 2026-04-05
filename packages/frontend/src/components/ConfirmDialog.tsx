@@ -21,25 +21,20 @@ export default function ConfirmDialog({
   onConfirm,
   onCancel,
 }: Props) {
-  const confirmStyles =
-    variant === "danger"
-      ? "bg-red-600 text-white hover:bg-red-700"
-      : "bg-blue-600 text-white hover:bg-blue-700";
-
   return (
     <Modal isOpen={isOpen} onClose={onCancel} title={title}>
       <div className="space-y-4">
-        <p className="text-sm text-gray-600">{message}</p>
+        <p className="text-sm text-gray-500">{message}</p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onCancel}
-            className="px-4 py-2 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            className="btn-secondary text-sm px-4 py-2"
           >
             {cancelLabel}
           </button>
           <button
             onClick={onConfirm}
-            className={`px-4 py-2 text-sm rounded-lg font-medium ${confirmStyles}`}
+            className={`${variant === "danger" ? "btn-danger" : "btn-primary"} text-sm px-4 py-2`}
           >
             {confirmLabel}
           </button>

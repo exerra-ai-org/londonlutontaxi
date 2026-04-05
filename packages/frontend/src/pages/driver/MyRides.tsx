@@ -48,7 +48,7 @@ export default function MyRides() {
         <h1 className="text-xl font-semibold">My Rides</h1>
         <button
           onClick={fetchBookings}
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className="text-sm text-blue-600 hover:text-blue-500"
         >
           Refresh
         </button>

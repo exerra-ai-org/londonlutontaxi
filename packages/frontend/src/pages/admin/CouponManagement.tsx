@@ -76,25 +76,22 @@ export default function CouponManagement() {
         <h1 className="text-xl font-semibold">Coupons</h1>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+          className="btn-primary text-sm !py-1.5 !px-3"
         >
           {showForm ? "Cancel" : "New Coupon"}
         </button>
       </div>
 
       {showForm && (
-        <form
-          onSubmit={handleCreate}
-          className="bg-white border rounded-xl p-5 mb-4 space-y-4"
-        >
+        <form onSubmit={handleCreate} className="glass-card p-5 mb-4 space-y-4">
           {formError && (
-            <div className="bg-red-50 text-red-700 px-3 py-2 rounded-lg text-sm border border-red-100">
+            <div className="glass-card !border-red-300/40 px-3 py-2 text-red-600 text-xs">
               {formError}
             </div>
           )}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">
                 Code
               </label>
               <input
@@ -102,12 +99,12 @@ export default function CouponManagement() {
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 required
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="input-glass w-full"
                 placeholder="SUMMER20"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">
                 Type
               </label>
               <select
@@ -115,14 +112,14 @@ export default function CouponManagement() {
                 onChange={(e) =>
                   setDiscountType(e.target.value as "fixed" | "percentage")
                 }
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-glass w-full"
               >
                 <option value="percentage">Percentage (%)</option>
                 <option value="fixed">Fixed (pence)</option>
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">
                 Value {discountType === "percentage" ? "(%)" : "(pence)"}
               </label>
               <input
@@ -131,39 +128,39 @@ export default function CouponManagement() {
                 onChange={(e) => setDiscountValue(e.target.value)}
                 required
                 min={1}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-glass w-full"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1.5">
+              <label className="block text-xs font-medium text-gray-500 mb-1.5">
                 Max Uses{" "}
-                <span className="text-gray-300 font-normal">(optional)</span>
+                <span className="text-gray-400 font-normal">(optional)</span>
               </label>
               <input
                 type="number"
                 value={maxUses}
                 onChange={(e) => setMaxUses(e.target.value)}
                 min={1}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="input-glass w-full"
               />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1.5">
+            <label className="block text-xs font-medium text-gray-500 mb-1.5">
               Expires{" "}
-              <span className="text-gray-300 font-normal">(optional)</span>
+              <span className="text-gray-700 font-normal">(optional)</span>
             </label>
             <input
               type="date"
               value={expiresAt}
               onChange={(e) => setExpiresAt(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-glass w-full"
             />
           </div>
           <button
             type="submit"
             disabled={submitting}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="btn-primary w-full text-sm"
           >
             {submitting ? "Creating..." : "Create Coupon"}
           </button>
@@ -172,18 +169,18 @@ export default function CouponManagement() {
 
       {coupons.length === 0 ? (
         <div className="text-center py-12">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-gray-50 mb-3">
-            <IconTicket className="w-7 h-7 text-gray-300" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-blue-50/60 mb-3">
+            <IconTicket className="w-7 h-7 text-gray-400" />
           </div>
           <p className="text-gray-400 text-sm">No coupons yet</p>
         </div>
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden md:block bg-white border rounded-xl overflow-hidden">
+          <div className="hidden md:block glass-table">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b text-left">
+                <tr className="bg-blue-50/60 border-b border-black/8 text-left">
                   <th className="px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wide">
                     Code
                   </th>
@@ -201,7 +198,7 @@ export default function CouponManagement() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-black/5">
                 {coupons.map((c) => {
                   const expired =
                     c.expiresAt && new Date(c.expiresAt) < new Date();
@@ -211,7 +208,7 @@ export default function CouponManagement() {
                   return (
                     <tr
                       key={c.id}
-                      className={`hover:bg-gray-50 transition-colors ${inactive ? "opacity-50" : ""}`}
+                      className={`hover:bg-blue-50/80 transition-colors ${inactive ? "opacity-50" : ""}`}
                     >
                       <td className="px-4 py-3 font-mono font-semibold text-gray-900">
                         {c.code}
@@ -224,7 +221,7 @@ export default function CouponManagement() {
                       <td className="px-4 py-3 text-gray-500">
                         {c.currentUses}/{c.maxUses ?? "∞"}
                       </td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">
+                      <td className="px-4 py-3 text-gray-400 text-xs">
                         {c.expiresAt ? formatDate(c.expiresAt) : "—"}
                       </td>
                       <td className="px-4 py-3">
@@ -232,7 +229,7 @@ export default function CouponManagement() {
                           className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                             inactive
                               ? "bg-gray-100 text-gray-400"
-                              : "bg-green-100 text-green-700"
+                              : "bg-green-100/80 text-green-700"
                           }`}
                         >
                           {inactive ? "Inactive" : "Active"}
@@ -253,7 +250,7 @@ export default function CouponManagement() {
               return (
                 <div
                   key={c.id}
-                  className={`bg-white border rounded-xl p-3 ${expired || maxedOut ? "opacity-50" : ""}`}
+                  className={`glass-card p-3 ${expired || maxedOut ? "opacity-50" : ""}`}
                 >
                   <div className="flex items-center justify-between">
                     <div>

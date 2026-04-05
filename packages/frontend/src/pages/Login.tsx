@@ -34,9 +34,9 @@ export default function Login() {
         <h1 className="text-2xl font-bold text-gray-900">Welcome back</h1>
         <p className="text-sm text-gray-500 mt-1">Sign in to your account</p>
       </div>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="glass-card p-8 space-y-4">
         {error && (
-          <div className="bg-red-50 text-red-700 px-4 py-2 rounded-lg text-sm border border-red-100">
+          <div className="glass-card !border-red-300/40 px-4 py-3 text-red-600 text-sm">
             {error}
           </div>
         )}
@@ -50,7 +50,7 @@ export default function Login() {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoFocus
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+            className="input-glass w-full"
             placeholder="you@example.com"
           />
         </div>
@@ -66,15 +66,11 @@ export default function Login() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+            className="input-glass w-full"
             placeholder="Leave empty for customer login"
           />
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 transition-colors btn-press"
-        >
+        <button type="submit" disabled={loading} className="btn-primary w-full">
           {loading ? (
             <span className="flex items-center justify-center gap-2">
               <svg

@@ -66,7 +66,7 @@ export default function RideTimeline() {
         <h1 className="text-xl font-semibold">Ride Timeline</h1>
         <button
           onClick={() => setShowZoneMap((v) => !v)}
-          className="text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+          className="btn-secondary text-xs !py-1.5 !px-3"
         >
           {showZoneMap ? "Hide Zone Map" : "Show Zone Map"}
         </button>
@@ -92,8 +92,8 @@ export default function RideTimeline() {
             onClick={() => setStatusFilter(s)}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
               statusFilter === s
-                ? "bg-blue-600 text-white"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-blue-100/80 text-blue-600 ring-1 ring-blue-300/40"
+                : "bg-blue-50/60 text-gray-500 hover:bg-blue-50/80"
             }`}
           >
             {s === "all" ? "All" : s.replace("_", " ").toUpperCase()}
@@ -104,18 +104,18 @@ export default function RideTimeline() {
       {/* Empty state */}
       {filtered.length === 0 ? (
         <div className="text-center py-16">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 mb-4">
-            <IconCar className="w-8 h-8 text-gray-300" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50/60 mb-4">
+            <IconCar className="w-8 h-8 text-gray-400" />
           </div>
           <p className="text-gray-400 text-sm">No rides found</p>
         </div>
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden md:block bg-white border rounded-xl overflow-hidden">
+          <div className="hidden md:block glass-table">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b text-left">
+                <tr className="bg-blue-50/60 border-b border-black/8 text-left">
                   <th className="px-4 py-3 font-medium text-gray-500 text-xs uppercase tracking-wide">
                     Route
                   </th>
@@ -130,7 +130,7 @@ export default function RideTimeline() {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-black/5">
                 {filtered.map((b) => (
                   <tr
                     key={b.id}
@@ -145,7 +145,7 @@ export default function RideTimeline() {
                         → {b.dropoffAddress}
                       </div>
                       {b.isAirport && (
-                        <span className="inline-block mt-1 bg-amber-100 text-amber-800 text-xs px-1.5 py-0.5 rounded font-medium">
+                        <span className="inline-block mt-1 bg-amber-100/80 text-amber-700 text-xs px-1.5 py-0.5 rounded font-medium">
                           AIRPORT
                         </span>
                       )}
@@ -171,7 +171,7 @@ export default function RideTimeline() {
               <button
                 key={b.id}
                 onClick={() => setSelectedId(b.id)}
-                className="w-full text-left bg-white border rounded-xl p-3 hover:border-blue-300 hover:shadow-sm transition-all"
+                className="w-full text-left glass-card p-3 hover:border-blue-300 hover:shadow-sm transition-all"
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-0.5 min-w-0 flex-1 pr-2">
@@ -188,7 +188,7 @@ export default function RideTimeline() {
                   <div className="flex flex-col items-end gap-1 shrink-0">
                     <StatusBadge status={b.status} />
                     {b.isAirport && (
-                      <span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">
+                      <span className="bg-amber-100/80 text-amber-700 text-xs px-2 py-0.5 rounded-full font-medium">
                         AIRPORT
                       </span>
                     )}

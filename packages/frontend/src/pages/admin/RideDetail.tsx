@@ -129,7 +129,7 @@ export default function RideDetail({ bookingId, onClose, onUpdated }: Props) {
               </div>
               {booking.isAirport && (
                 <div className="text-center">
-                  <span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">
+                  <span className="bg-amber-100/80 text-amber-700 text-xs px-2 py-0.5 rounded-full font-medium">
                     AIRPORT
                   </span>
                 </div>
@@ -145,7 +145,9 @@ export default function RideDetail({ bookingId, onClose, onUpdated }: Props) {
                     <div
                       key={a.id}
                       className={`flex justify-between text-sm px-2 py-1 rounded ${
-                        a.isActive ? "bg-green-50" : "bg-gray-50 text-gray-400"
+                        a.isActive
+                          ? "bg-green-100/80"
+                          : "bg-gray-100 text-gray-400"
                       }`}
                     >
                       <span>
@@ -166,7 +168,7 @@ export default function RideDetail({ bookingId, onClose, onUpdated }: Props) {
                 {booking.status === "scheduled" && (
                   <button
                     onClick={() => handleStatusChange("cancelled")}
-                    className="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded hover:bg-red-200"
+                    className="text-xs bg-red-100/80 text-red-600 px-3 py-1.5 rounded hover:bg-red-100"
                   >
                     Cancel
                   </button>
@@ -174,7 +176,7 @@ export default function RideDetail({ bookingId, onClose, onUpdated }: Props) {
                 {booking.status === "assigned" && (
                   <button
                     onClick={() => handleStatusChange("en_route")}
-                    className="text-xs bg-orange-100 text-orange-700 px-3 py-1.5 rounded hover:bg-orange-200"
+                    className="text-xs bg-orange-100/80 text-orange-600 px-3 py-1.5 rounded hover:bg-orange-100"
                   >
                     Set En Route
                   </button>
@@ -182,7 +184,7 @@ export default function RideDetail({ bookingId, onClose, onUpdated }: Props) {
                 {booking.status === "en_route" && (
                   <button
                     onClick={() => handleStatusChange("arrived")}
-                    className="text-xs bg-purple-100 text-purple-700 px-3 py-1.5 rounded hover:bg-purple-200"
+                    className="text-xs bg-purple-100/80 text-purple-600 px-3 py-1.5 rounded hover:bg-purple-100"
                   >
                     Set Arrived
                   </button>
@@ -190,7 +192,7 @@ export default function RideDetail({ bookingId, onClose, onUpdated }: Props) {
                 {booking.status === "arrived" && (
                   <button
                     onClick={() => handleStatusChange("completed")}
-                    className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded hover:bg-green-200"
+                    className="text-xs bg-green-100/80 text-green-700 px-3 py-1.5 rounded hover:bg-green-100"
                   >
                     Complete
                   </button>
@@ -198,7 +200,7 @@ export default function RideDetail({ bookingId, onClose, onUpdated }: Props) {
                 {canFallback && (
                   <button
                     onClick={handleFallback}
-                    className="text-xs bg-red-600 text-white px-3 py-1.5 rounded hover:bg-red-700"
+                    className="btn-danger text-xs !py-1.5 !px-3"
                   >
                     Trigger Fallback
                   </button>

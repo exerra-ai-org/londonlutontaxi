@@ -18,7 +18,7 @@ export function SkeletonText({ lines = 3 }: { lines?: number }) {
 
 export function SkeletonCard() {
   return (
-    <div className="bg-white border rounded-lg p-4 space-y-3">
+    <div className="glass-card p-4 space-y-3">
       <div className="flex items-start justify-between">
         <div className="flex-1 space-y-2">
           <div className="skeleton h-4 w-3/4" />

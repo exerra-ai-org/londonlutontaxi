@@ -69,7 +69,7 @@ export default function RideCard({ booking, onStatusUpdate }: Props) {
 
   return (
     <div
-      className={`bg-white border border-l-4 rounded-lg p-4 ${STATUS_BORDER[booking.status] ?? "border-l-gray-200"}`}
+      className={`glass-card border-l-4 p-4 ${STATUS_BORDER[booking.status] ?? "border-l-gray-200"}`}
     >
       <div className="flex items-start justify-between">
         <div className="space-y-1 flex-1 min-w-0 pr-3">
@@ -78,7 +78,7 @@ export default function RideCard({ booking, onStatusUpdate }: Props) {
             <span className="truncate">{booking.pickupAddress}</span>
           </div>
           <div className="flex items-start gap-1.5 text-sm text-gray-500">
-            <IconMapPin className="w-3.5 h-3.5 text-red-400 mt-0.5 shrink-0" />
+            <IconMapPin className="w-3.5 h-3.5 text-red-600 mt-0.5 shrink-0" />
             <span className="truncate">{booking.dropoffAddress}</span>
           </div>
           <div className="text-xs text-gray-400">
@@ -89,7 +89,7 @@ export default function RideCard({ booking, onStatusUpdate }: Props) {
         <div className="flex flex-col items-end gap-1.5 shrink-0">
           <StatusBadge status={booking.status} />
           {booking.isAirport && (
-            <span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">
+            <span className="bg-amber-100/80 text-amber-700 text-xs px-2 py-0.5 rounded-full font-medium">
               AIRPORT
             </span>
           )}
