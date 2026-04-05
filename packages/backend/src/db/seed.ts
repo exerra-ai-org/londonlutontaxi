@@ -241,12 +241,35 @@ async function seed() {
     })
     .returning();
 
+  // Additional test customers
+  await db.insert(users).values([
+    {
+      email: "sarah@example.com",
+      name: "Sarah Johnson",
+      phone: "07712345678",
+      role: "customer",
+    },
+    {
+      email: "james@example.com",
+      name: "James Wilson",
+      phone: "07798765432",
+      role: "customer",
+    },
+    {
+      email: "emma@example.com",
+      name: "Emma Davis",
+      phone: "07755544433",
+      role: "customer",
+    },
+  ]);
+
   console.log(
     "  Users created:",
     admin.id,
     driver1.id,
     driver2.id,
     customer.id,
+    "+ 3 more customers",
   );
 
   // ── Zones with GeoJSON boundaries ─────────────────
@@ -262,48 +285,76 @@ async function seed() {
   const zoneMap = Object.fromEntries(insertedZones.map((z) => [z.name, z.id]));
   console.log("  Zones created:", insertedZones.length);
 
-  // ── Zone Pricing (sample pairs, pence) ─────────────
+  // ── Zone Pricing — full tiered matrix (pence) ─────
+  // Same zone: £20 (2000p)
+  // Adjacent (1 hop from Central): £35 (3500p)
+  // Cross-city (2 hops, opposite): £50 (5000p)
+  // Diagonal (2 hops, not opposite): £45 (4500p)
+  // Airport ↔ Central: handled by fixed routes
+  // Airport ↔ non-Central London zone: £75-85
+
+  const C = zoneMap.central_london;
+  const N = zoneMap.north_london;
+  const S = zoneMap.south_london;
+  const E = zoneMap.east_london;
+  const W = zoneMap.west_london;
+  const HEA = zoneMap.heathrow;
+  const GAT = zoneMap.gatwick;
+  const STA = zoneMap.stansted;
+  const LUT = zoneMap.luton;
+
   const zonePricingData = [
-    {
-      fromZoneId: zoneMap.central_london,
-      toZoneId: zoneMap.north_london,
-      pricePence: 3500,
-    },
-    {
-      fromZoneId: zoneMap.central_london,
-      toZoneId: zoneMap.south_london,
-      pricePence: 3500,
-    },
-    {
-      fromZoneId: zoneMap.central_london,
-      toZoneId: zoneMap.east_london,
-      pricePence: 3500,
-    },
-    {
-      fromZoneId: zoneMap.central_london,
-      toZoneId: zoneMap.west_london,
-      pricePence: 3500,
-    },
-    {
-      fromZoneId: zoneMap.north_london,
-      toZoneId: zoneMap.south_london,
-      pricePence: 5000,
-    },
-    {
-      fromZoneId: zoneMap.east_london,
-      toZoneId: zoneMap.west_london,
-      pricePence: 5000,
-    },
+    // Adjacent to Central (1 hop) — £35
+    { fromZoneId: C, toZoneId: N, pricePence: 3500 },
+    { fromZoneId: C, toZoneId: S, pricePence: 3500 },
+    { fromZoneId: C, toZoneId: E, pricePence: 3500 },
+    { fromZoneId: C, toZoneId: W, pricePence: 3500 },
+
+    // Cross-city opposite (2 hops) — £50
+    { fromZoneId: N, toZoneId: S, pricePence: 5000 },
+    { fromZoneId: E, toZoneId: W, pricePence: 5000 },
+
+    // Diagonal (2 hops, not opposite) — £45
+    { fromZoneId: N, toZoneId: E, pricePence: 4500 },
+    { fromZoneId: N, toZoneId: W, pricePence: 4500 },
+    { fromZoneId: S, toZoneId: E, pricePence: 4500 },
+    { fromZoneId: S, toZoneId: W, pricePence: 4500 },
+
+    // Airport ↔ Central London (zone fallback for when fixed route text doesn't match)
+    { fromZoneId: HEA, toZoneId: C, pricePence: 6500 },
+    { fromZoneId: GAT, toZoneId: C, pricePence: 8500 },
+    { fromZoneId: STA, toZoneId: C, pricePence: 9500 },
+    { fromZoneId: LUT, toZoneId: C, pricePence: 8000 },
+
+    // Airport ↔ non-Central London zones — £75-85
+    { fromZoneId: HEA, toZoneId: N, pricePence: 7500 },
+    { fromZoneId: HEA, toZoneId: S, pricePence: 7500 },
+    { fromZoneId: HEA, toZoneId: E, pricePence: 8500 },
+    { fromZoneId: HEA, toZoneId: W, pricePence: 5500 },
+    { fromZoneId: GAT, toZoneId: N, pricePence: 8500 },
+    { fromZoneId: GAT, toZoneId: S, pricePence: 6500 },
+    { fromZoneId: GAT, toZoneId: E, pricePence: 8000 },
+    { fromZoneId: GAT, toZoneId: W, pricePence: 8500 },
+    { fromZoneId: STA, toZoneId: N, pricePence: 7500 },
+    { fromZoneId: STA, toZoneId: S, pricePence: 9500 },
+    { fromZoneId: STA, toZoneId: E, pricePence: 7000 },
+    { fromZoneId: STA, toZoneId: W, pricePence: 9500 },
+    { fromZoneId: LUT, toZoneId: N, pricePence: 7000 },
+    { fromZoneId: LUT, toZoneId: S, pricePence: 9000 },
+    { fromZoneId: LUT, toZoneId: E, pricePence: 8500 },
+    { fromZoneId: LUT, toZoneId: W, pricePence: 8000 },
   ];
 
   await db.insert(zonePricing).values(zonePricingData);
   console.log("  Zone pricing entries created:", zonePricingData.length);
 
   // ── Fixed Routes ───────────────────────────────────
+
   const fixedRouteData = [
+    // Airport routes
     {
       name: "Heathrow → Central London",
-      fromLabel: "Heathrow Airport",
+      fromLabel: "Heathrow",
       toLabel: "Central London",
       pricePence: 6500,
       isAirport: true,
@@ -311,13 +362,13 @@ async function seed() {
     {
       name: "Central London → Heathrow",
       fromLabel: "Central London",
-      toLabel: "Heathrow Airport",
+      toLabel: "Heathrow",
       pricePence: 6500,
       isAirport: true,
     },
     {
       name: "Gatwick → Central London",
-      fromLabel: "Gatwick Airport",
+      fromLabel: "Gatwick",
       toLabel: "Central London",
       pricePence: 8500,
       isAirport: true,
@@ -325,30 +376,158 @@ async function seed() {
     {
       name: "Central London → Gatwick",
       fromLabel: "Central London",
-      toLabel: "Gatwick Airport",
+      toLabel: "Gatwick",
       pricePence: 8500,
       isAirport: true,
     },
     {
-      name: "Heathrow → Gatwick",
-      fromLabel: "Heathrow Airport",
-      toLabel: "Gatwick Airport",
+      name: "Heathrow ↔ Gatwick",
+      fromLabel: "Heathrow",
+      toLabel: "Gatwick",
       pricePence: 12000,
       isAirport: true,
     },
     {
       name: "Stansted → Central London",
-      fromLabel: "Stansted Airport",
+      fromLabel: "Stansted",
       toLabel: "Central London",
       pricePence: 9500,
       isAirport: true,
     },
     {
       name: "Luton → Central London",
-      fromLabel: "Luton Airport",
+      fromLabel: "Luton",
       toLabel: "Central London",
       pricePence: 8000,
       isAirport: true,
+    },
+
+    // Common London routes (non-airport)
+    {
+      name: "Westminster → Canary Wharf",
+      fromLabel: "Westminster",
+      toLabel: "Canary Wharf",
+      pricePence: 3000,
+      isAirport: false,
+    },
+    {
+      name: "Canary Wharf → Westminster",
+      fromLabel: "Canary Wharf",
+      toLabel: "Westminster",
+      pricePence: 3000,
+      isAirport: false,
+    },
+    {
+      name: "King's Cross → Greenwich",
+      fromLabel: "King's Cross",
+      toLabel: "Greenwich",
+      pricePence: 3500,
+      isAirport: false,
+    },
+    {
+      name: "Greenwich → King's Cross",
+      fromLabel: "Greenwich",
+      toLabel: "King's Cross",
+      pricePence: 3500,
+      isAirport: false,
+    },
+    {
+      name: "Paddington → Liverpool Street",
+      fromLabel: "Paddington",
+      toLabel: "Liverpool Street",
+      pricePence: 2800,
+      isAirport: false,
+    },
+    {
+      name: "Liverpool Street → Paddington",
+      fromLabel: "Liverpool Street",
+      toLabel: "Paddington",
+      pricePence: 2800,
+      isAirport: false,
+    },
+    {
+      name: "Camden → London Bridge",
+      fromLabel: "Camden",
+      toLabel: "London Bridge",
+      pricePence: 2500,
+      isAirport: false,
+    },
+    {
+      name: "London Bridge → Camden",
+      fromLabel: "London Bridge",
+      toLabel: "Camden",
+      pricePence: 2500,
+      isAirport: false,
+    },
+    {
+      name: "Victoria → Stratford",
+      fromLabel: "Victoria",
+      toLabel: "Stratford",
+      pricePence: 3500,
+      isAirport: false,
+    },
+    {
+      name: "Stratford → Victoria",
+      fromLabel: "Stratford",
+      toLabel: "Victoria",
+      pricePence: 3500,
+      isAirport: false,
+    },
+    {
+      name: "Wimbledon → Central London",
+      fromLabel: "Wimbledon",
+      toLabel: "Central London",
+      pricePence: 4000,
+      isAirport: false,
+    },
+    {
+      name: "Central London → Wimbledon",
+      fromLabel: "Central London",
+      toLabel: "Wimbledon",
+      pricePence: 4000,
+      isAirport: false,
+    },
+    {
+      name: "Richmond → City of London",
+      fromLabel: "Richmond",
+      toLabel: "City of London",
+      pricePence: 3800,
+      isAirport: false,
+    },
+    {
+      name: "City of London → Richmond",
+      fromLabel: "City of London",
+      toLabel: "Richmond",
+      pricePence: 3800,
+      isAirport: false,
+    },
+    {
+      name: "Croydon → Central London",
+      fromLabel: "Croydon",
+      toLabel: "Central London",
+      pricePence: 4500,
+      isAirport: false,
+    },
+    {
+      name: "Central London → Croydon",
+      fromLabel: "Central London",
+      toLabel: "Croydon",
+      pricePence: 4500,
+      isAirport: false,
+    },
+    {
+      name: "Shoreditch → Westminster",
+      fromLabel: "Shoreditch",
+      toLabel: "Westminster",
+      pricePence: 3000,
+      isAirport: false,
+    },
+    {
+      name: "Westminster → Shoreditch",
+      fromLabel: "Westminster",
+      toLabel: "Shoreditch",
+      pricePence: 3000,
+      isAirport: false,
     },
   ];
 

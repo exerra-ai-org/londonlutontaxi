@@ -21,21 +21,26 @@ pricingRoutes.get("/quote", async (c) => {
 
   const { from, to, fromLat, fromLon, toLat, toLon } = parsed.data;
 
-  const quote = await getPricingQuote(from, to, {
-    fromLat,
-    fromLon,
-    toLat,
-    toLon,
-  });
+  try {
+    const quote = await getPricingQuote(from, to, {
+      fromLat,
+      fromLon,
+      toLat,
+      toLon,
+    });
 
-  if (!quote) {
-    return err(c, "No pricing found for this route", 404);
+    if (!quote) {
+      return err(c, "No pricing found for this route", 404);
+    }
+
+    return ok(c, {
+      pricePence: quote.pricePence,
+      routeType: quote.routeType,
+      routeName: quote.routeName,
+      isAirport: quote.isAirport,
+    });
+  } catch (error) {
+    console.error("Pricing endpoint error:", error);
+    return err(c, "Failed to calculate pricing", 500);
   }
-
-  return ok(c, {
-    pricePence: quote.pricePence,
-    routeType: quote.routeType,
-    routeName: quote.routeName,
-    isAirport: quote.isAirport,
-  });
 });

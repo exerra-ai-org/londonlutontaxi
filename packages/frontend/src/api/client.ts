@@ -12,17 +12,35 @@ async function request<T>(
   path: string,
   body?: unknown,
 ): Promise<T> {
-  const res = await fetch(path, {
-    method,
-    credentials: "include",
-    headers: body ? { "Content-Type": "application/json" } : undefined,
-    body: body ? JSON.stringify(body) : undefined,
-  });
+  let res: Response;
+  try {
+    res = await fetch(path, {
+      method,
+      credentials: "include",
+      headers: body ? { "Content-Type": "application/json" } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch {
+    throw new ApiError("Unable to connect to the server. Please try again.", 0);
+  }
 
-  const json = await res.json();
+  let json: { success?: boolean; data?: T; error?: string };
+  try {
+    json = await res.json();
+  } catch {
+    throw new ApiError(
+      res.ok
+        ? "Unexpected response from server"
+        : `Server error (${res.status})`,
+      res.status,
+    );
+  }
 
-  if (!json.success) {
-    throw new ApiError(json.error || "Request failed", res.status);
+  if (!res.ok || !json.success) {
+    throw new ApiError(
+      json.error || `Something went wrong (${res.status})`,
+      res.status,
+    );
   }
 
   return json.data as T;
