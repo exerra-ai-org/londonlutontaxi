@@ -1,12 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import "leaflet/dist/leaflet.css";
 import "./index.css";
 
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import Layout from "./components/Layout";
-import GoogleMapsProvider from "./components/maps/GoogleMapsProvider";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 import Login from "./pages/Login";
@@ -26,38 +26,36 @@ if ("serviceWorker" in navigator) {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <GoogleMapsProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route element={<Layout />}>
-                <Route path="/login" element={<Login />} />
-                <Route path="/" element={<BookingFlow />} />
+    <ToastProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<BookingFlow />} />
 
-                {/* Customer — requires login */}
-                <Route element={<ProtectedRoute roles={["customer"]} />}>
-                  <Route path="/bookings" element={<BookingHistory />} />
-                </Route>
-
-                {/* Admin */}
-                <Route element={<ProtectedRoute roles={["admin"]} />}>
-                  <Route path="/admin" element={<RideTimeline />} />
-                  <Route path="/admin/drivers" element={<DriverManagement />} />
-                  <Route path="/admin/coupons" element={<CouponManagement />} />
-                </Route>
-
-                {/* Driver */}
-                <Route element={<ProtectedRoute roles={["driver"]} />}>
-                  <Route path="/driver" element={<MyRides />} />
-                </Route>
-
-                <Route path="*" element={<Navigate to="/" replace />} />
+              {/* Customer — requires login */}
+              <Route element={<ProtectedRoute roles={["customer"]} />}>
+                <Route path="/bookings" element={<BookingHistory />} />
               </Route>
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </ToastProvider>
-    </GoogleMapsProvider>
+
+              {/* Admin */}
+              <Route element={<ProtectedRoute roles={["admin"]} />}>
+                <Route path="/admin" element={<RideTimeline />} />
+                <Route path="/admin/drivers" element={<DriverManagement />} />
+                <Route path="/admin/coupons" element={<CouponManagement />} />
+              </Route>
+
+              {/* Driver */}
+              <Route element={<ProtectedRoute roles={["driver"]} />}>
+                <Route path="/driver" element={<MyRides />} />
+              </Route>
+
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ToastProvider>
   </React.StrictMode>,
 );
