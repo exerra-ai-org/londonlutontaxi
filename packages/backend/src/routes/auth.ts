@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { sign } from "hono/jwt";
 import { setCookie, deleteCookie } from "hono/cookie";
 import { eq } from "drizzle-orm";
-import { loginSchema } from "shared/validation";
+import { loginSchema, registerSchema } from "shared/validation";
 import { db } from "../db/index";
 import { users } from "../db/schema";
 import {
@@ -31,7 +31,7 @@ authRoutes.post("/login", async (c) => {
     .limit(1);
 
   if (result.length === 0) {
-    return err(c, "Invalid credentials", 401);
+    return err(c, "Account not found", 404);
   }
 
   const user = result[0];
@@ -46,6 +46,54 @@ authRoutes.post("/login", async (c) => {
       return err(c, "Invalid credentials", 401);
     }
   }
+
+  const payload = {
+    sub: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    exp: Math.floor(Date.now() / 1000) + JWT_EXPIRES_IN_SECONDS,
+  };
+
+  const token = await sign(payload, JWT_SECRET);
+
+  setCookie(c, JWT_COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "Lax",
+    path: "/",
+    maxAge: JWT_EXPIRES_IN_SECONDS,
+  });
+
+  return ok(c, {
+    user: { id: user.id, email: user.email, name: user.name, role: user.role },
+  });
+});
+
+authRoutes.post("/register", async (c) => {
+  const body = await c.req.json();
+  const parsed = registerSchema.safeParse(body);
+  if (!parsed.success) {
+    return err(c, "Invalid input", 400, parsed.error.flatten());
+  }
+
+  const { email, name, phone } = parsed.data;
+
+  // Check if user already exists
+  const existing = await db
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+
+  if (existing.length > 0) {
+    return err(c, "An account with this email already exists", 409);
+  }
+
+  const [user] = await db
+    .insert(users)
+    .values({ email, name, phone, role: "customer" })
+    .returning();
 
   const payload = {
     sub: user.id,

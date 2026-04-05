@@ -32,6 +32,12 @@ export const loginSchema = z.object({
   password: z.string().optional(),
 });
 
+export const registerSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(1),
+  phone: z.string().min(6),
+});
+
 export const updateBookingStatusSchema = z.object({
   status: bookingStatusEnum,
 });
