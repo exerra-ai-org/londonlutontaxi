@@ -153,7 +153,10 @@ export default function FixedRouteManagement() {
           <p className="section-label">Admin</p>
           <h1 className="page-title mt-4 text-[40px]">Fixed routes</h1>
         </div>
-        <button onClick={startCreate} className="btn-secondary button-text-compact">
+        <button
+          onClick={startCreate}
+          className="btn-secondary button-text-compact"
+        >
           New Route
         </button>
       </div>
@@ -219,11 +222,19 @@ export default function FixedRouteManagement() {
         </label>
 
         <div className="flex gap-3">
-          <button type="submit" disabled={saving} className="btn-primary flex-1">
+          <button
+            type="submit"
+            disabled={saving}
+            className="btn-primary flex-1"
+          >
             {saving ? "Saving..." : isEditing ? "Update Route" : "Create Route"}
           </button>
           {isEditing && (
-            <button type="button" onClick={startCreate} className="btn-secondary flex-1">
+            <button
+              type="button"
+              onClick={startCreate}
+              className="btn-secondary flex-1"
+            >
               Cancel Edit
             </button>
           )}

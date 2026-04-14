@@ -128,12 +128,8 @@
           "name": "bookings_customer_id_users_id_fk",
           "tableFrom": "bookings",
           "tableTo": "users",
-          "columnsFrom": [
-            "customer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["customer_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -141,12 +137,8 @@
           "name": "bookings_pickup_zone_id_zones_id_fk",
           "tableFrom": "bookings",
           "tableTo": "zones",
-          "columnsFrom": [
-            "pickup_zone_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["pickup_zone_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -154,12 +146,8 @@
           "name": "bookings_dropoff_zone_id_zones_id_fk",
           "tableFrom": "bookings",
           "tableTo": "zones",
-          "columnsFrom": [
-            "dropoff_zone_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["dropoff_zone_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -167,12 +155,8 @@
           "name": "bookings_fixed_route_id_fixed_routes_id_fk",
           "tableFrom": "bookings",
           "tableTo": "fixed_routes",
-          "columnsFrom": [
-            "fixed_route_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["fixed_route_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -180,12 +164,8 @@
           "name": "bookings_coupon_id_coupons_id_fk",
           "tableFrom": "bookings",
           "tableTo": "coupons",
-          "columnsFrom": [
-            "coupon_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["coupon_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -252,9 +232,7 @@
         "coupons_code_unique": {
           "name": "coupons_code_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code"
-          ]
+          "columns": ["code"]
         }
       },
       "policies": {},
@@ -311,12 +289,8 @@
           "name": "driver_assignments_booking_id_bookings_id_fk",
           "tableFrom": "driver_assignments",
           "tableTo": "bookings",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -324,12 +298,8 @@
           "name": "driver_assignments_driver_id_users_id_fk",
           "tableFrom": "driver_assignments",
           "tableTo": "users",
-          "columnsFrom": [
-            "driver_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["driver_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -473,12 +443,8 @@
           "name": "reviews_booking_id_bookings_id_fk",
           "tableFrom": "reviews",
           "tableTo": "bookings",
-          "columnsFrom": [
-            "booking_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["booking_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -486,12 +452,8 @@
           "name": "reviews_customer_id_users_id_fk",
           "tableFrom": "reviews",
           "tableTo": "users",
-          "columnsFrom": [
-            "customer_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["customer_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -499,12 +461,8 @@
           "name": "reviews_driver_id_users_id_fk",
           "tableFrom": "reviews",
           "tableTo": "users",
-          "columnsFrom": [
-            "driver_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["driver_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -572,9 +530,7 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -651,12 +607,8 @@
           "name": "zone_pricing_from_zone_id_zones_id_fk",
           "tableFrom": "zone_pricing",
           "tableTo": "zones",
-          "columnsFrom": [
-            "from_zone_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["from_zone_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -664,12 +616,8 @@
           "name": "zone_pricing_to_zone_id_zones_id_fk",
           "tableFrom": "zone_pricing",
           "tableTo": "zones",
-          "columnsFrom": [
-            "to_zone_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["to_zone_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -728,9 +676,7 @@
         "zones_name_unique": {
           "name": "zones_name_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "name"
-          ]
+          "columns": ["name"]
         }
       },
       "policies": {},
@@ -754,27 +700,17 @@
     "public.discount_type": {
       "name": "discount_type",
       "schema": "public",
-      "values": [
-        "fixed",
-        "percentage"
-      ]
+      "values": ["fixed", "percentage"]
     },
     "public.driver_assignment_role": {
       "name": "driver_assignment_role",
       "schema": "public",
-      "values": [
-        "primary",
-        "backup"
-      ]
+      "values": ["primary", "backup"]
     },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": [
-        "customer",
-        "admin",
-        "driver"
-      ]
+      "values": ["customer", "admin", "driver"]
     }
   },
   "schemas": {},

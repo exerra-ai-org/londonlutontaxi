@@ -37,7 +37,9 @@ export default function CustomerDetails({ onNext, onBack }: Props) {
       }
 
       if (result.role && result.role !== "customer") {
-        setError("This email belongs to a staff account. Please use the login page.");
+        setError(
+          "This email belongs to a staff account. Please use the login page.",
+        );
         setMode("check");
         return;
       }
@@ -177,7 +179,10 @@ export default function CustomerDetails({ onNext, onBack }: Props) {
       {mode === "existing" && (
         <>
           <div className="alert alert-info">
-            {existingName ? `Welcome back, ${existingName}.` : "Existing account found."} Verify your phone number to continue.
+            {existingName
+              ? `Welcome back, ${existingName}.`
+              : "Existing account found."}{" "}
+            Verify your phone number to continue.
           </div>
           <div>
             <label className="field-label mb-2 block">Phone Number</label>

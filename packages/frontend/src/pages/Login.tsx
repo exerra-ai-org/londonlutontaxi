@@ -18,7 +18,11 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const user = await login(email, password || undefined, phone || undefined);
+      const user = await login(
+        email,
+        password || undefined,
+        phone || undefined,
+      );
       if (user.role === "admin") navigate("/admin");
       else if (user.role === "driver") navigate("/driver");
       else navigate("/");

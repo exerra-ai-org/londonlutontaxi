@@ -33,8 +33,12 @@ export interface DriverWatchdogResult {
   };
 }
 
-export async function runDriverWatchdog(now = new Date()): Promise<DriverWatchdogResult> {
-  const staleThreshold = new Date(now.getTime() - HEARTBEAT_STALE_MINUTES * 60 * 1000);
+export async function runDriverWatchdog(
+  now = new Date(),
+): Promise<DriverWatchdogResult> {
+  const staleThreshold = new Date(
+    now.getTime() - HEARTBEAT_STALE_MINUTES * 60 * 1000,
+  );
 
   const activeBookings = await db
     .select({ id: bookings.id })

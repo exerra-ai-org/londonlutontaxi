@@ -22,7 +22,9 @@ export default function DriverAssignmentForm({
   onAssigned,
 }: Props) {
   const [drivers, setDrivers] = useState<Driver[]>([]);
-  const [primaryId, setPrimaryId] = useState<number>(initialPrimaryDriverId || 0);
+  const [primaryId, setPrimaryId] = useState<number>(
+    initialPrimaryDriverId || 0,
+  );
   const [backupId, setBackupId] = useState<number>(initialBackupDriverId || 0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -41,9 +43,7 @@ export default function DriverAssignmentForm({
       .catch((cause) => {
         setDrivers([]);
         setError(
-          cause instanceof ApiError
-            ? cause.message
-            : "Failed to load drivers",
+          cause instanceof ApiError ? cause.message : "Failed to load drivers",
         );
       });
   }, []);

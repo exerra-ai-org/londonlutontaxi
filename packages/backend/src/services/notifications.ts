@@ -13,10 +13,9 @@ import {
 import type { DriverWatchdogResult } from "./driverWatchdog";
 
 const APP_NAME = process.env.APP_NAME || "Taxi Concierge";
-const APP_BASE_URL = (process.env.APP_BASE_URL || "http://localhost:5173").replace(
-  /\/$/,
-  "",
-);
+const APP_BASE_URL = (
+  process.env.APP_BASE_URL || "http://localhost:5173"
+).replace(/\/$/, "");
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
@@ -35,7 +34,11 @@ let PUSH_READY = false;
 
 if (PUSH_ENABLED) {
   try {
-    webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY!, VAPID_PRIVATE_KEY!);
+    webpush.setVapidDetails(
+      VAPID_SUBJECT,
+      VAPID_PUBLIC_KEY!,
+      VAPID_PRIVATE_KEY!,
+    );
     PUSH_READY = true;
   } catch (cause) {
     console.error("Invalid VAPID configuration:", cause);
@@ -91,7 +94,9 @@ function absoluteUrl(path: string): string {
 }
 
 function uniqIds(userIds: number[]): number[] {
-  return Array.from(new Set(userIds.filter((id) => Number.isInteger(id) && id > 0)));
+  return Array.from(
+    new Set(userIds.filter((id) => Number.isInteger(id) && id > 0)),
+  );
 }
 
 function getTransporter(): nodemailer.Transporter | null {
@@ -108,7 +113,8 @@ function getTransporter(): nodemailer.Transporter | null {
     host: SMTP_HOST,
     port: SMTP_PORT,
     secure: SMTP_SECURE,
-    auth: SMTP_USER && SMTP_PASS ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
+    auth:
+      SMTP_USER && SMTP_PASS ? { user: SMTP_USER, pass: SMTP_PASS } : undefined,
   });
 
   return transporter;
@@ -132,7 +138,10 @@ async function claimEventOnce(
   return Boolean(created);
 }
 
-async function sendPush(userIds: number[], message: RideMessage): Promise<void> {
+async function sendPush(
+  userIds: number[],
+  message: RideMessage,
+): Promise<void> {
   if (!PUSH_READY) {
     return;
   }
@@ -191,7 +200,10 @@ async function sendPush(userIds: number[], message: RideMessage): Promise<void> 
   }
 }
 
-async function sendEmail(userIds: number[], message: RideMessage): Promise<void> {
+async function sendEmail(
+  userIds: number[],
+  message: RideMessage,
+): Promise<void> {
   const mailer = getTransporter();
   if (!mailer || !EMAIL_FROM) {
     return;
@@ -217,11 +229,16 @@ async function sendEmail(userIds: number[], message: RideMessage): Promise<void>
   }
 }
 
-async function sendRideMessage(userIds: number[], message: RideMessage): Promise<void> {
+async function sendRideMessage(
+  userIds: number[],
+  message: RideMessage,
+): Promise<void> {
   await Promise.all([sendPush(userIds, message), sendEmail(userIds, message)]);
 }
 
-async function getBookingContext(bookingId: number): Promise<BookingContext | null> {
+async function getBookingContext(
+  bookingId: number,
+): Promise<BookingContext | null> {
   const bookingRows = await db
     .select({
       bookingId: bookings.id,
@@ -271,8 +288,10 @@ async function getBookingContext(bookingId: number): Promise<BookingContext | nu
     customerName: booking.customerName,
     pricePence: booking.pricePence,
     activeDriverIds: assignments.map((a) => a.driverId),
-    primaryDriverId: assignments.find((a) => a.role === "primary")?.driverId || null,
-    backupDriverId: assignments.find((a) => a.role === "backup")?.driverId || null,
+    primaryDriverId:
+      assignments.find((a) => a.role === "primary")?.driverId || null,
+    backupDriverId:
+      assignments.find((a) => a.role === "backup")?.driverId || null,
     adminIds: admins.map((admin) => admin.id),
   };
 }
@@ -429,13 +448,20 @@ export async function notifyDriverWatchdogWarning(
     return;
   }
 
-  await sendRideMessage(uniqIds([primaryDriverId, ...ctx.adminIds, ...(ctx.backupDriverId ? [ctx.backupDriverId] : [])]), {
-    title: `${APP_NAME}: Driver Heartbeat Warning`,
-    emailSubject: `Heartbeat warning for booking #${bookingId}`,
-    body: `Primary driver heartbeat missed ${missedWindows}/${fallbackWindows} windows for booking #${bookingId}.`,
-    url: "/admin",
-    tag: `watchdog-warning-${bookingId}`,
-  });
+  await sendRideMessage(
+    uniqIds([
+      primaryDriverId,
+      ...ctx.adminIds,
+      ...(ctx.backupDriverId ? [ctx.backupDriverId] : []),
+    ]),
+    {
+      title: `${APP_NAME}: Driver Heartbeat Warning`,
+      emailSubject: `Heartbeat warning for booking #${bookingId}`,
+      body: `Primary driver heartbeat missed ${missedWindows}/${fallbackWindows} windows for booking #${bookingId}.`,
+      url: "/admin",
+      tag: `watchdog-warning-${bookingId}`,
+    },
+  );
 }
 
 export async function notifyDriverFallbackActivated(
@@ -471,7 +497,9 @@ export async function notifyDriverFallbackActivated(
   );
 }
 
-export async function notifyWatchdogResult(result: DriverWatchdogResult): Promise<void> {
+export async function notifyWatchdogResult(
+  result: DriverWatchdogResult,
+): Promise<void> {
   await Promise.all([
     ...result.warnings.map((warning) =>
       notifyDriverWatchdogWarning(
@@ -495,7 +523,9 @@ export async function processDueRideReminders(
   windowStart: Date,
   windowEnd: Date,
 ): Promise<number> {
-  const reminderMinutes = String(process.env.RIDE_REMINDER_MINUTES || "120,60,15")
+  const reminderMinutes = String(
+    process.env.RIDE_REMINDER_MINUTES || "120,60,15",
+  )
     .split(",")
     .map((v) => Number(v.trim()))
     .filter((v) => Number.isInteger(v) && v > 0)

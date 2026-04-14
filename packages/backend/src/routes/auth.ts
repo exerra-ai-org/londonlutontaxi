@@ -2,7 +2,11 @@ import { Hono } from "hono";
 import { sign } from "hono/jwt";
 import { setCookie, deleteCookie } from "hono/cookie";
 import { eq, sql } from "drizzle-orm";
-import { loginSchema, registerSchema, checkEmailSchema } from "shared/validation";
+import {
+  loginSchema,
+  registerSchema,
+  checkEmailSchema,
+} from "shared/validation";
 import { db } from "../db/index";
 import { users } from "../db/schema";
 import {
@@ -33,12 +37,15 @@ function setAuthCookie(c: Parameters<typeof setCookie>[0], token: string) {
   });
 }
 
-async function issueAuthCookie(c: Parameters<typeof setCookie>[0], user: {
-  id: number;
-  email: string;
-  role: "customer" | "admin" | "driver";
-  name: string;
-}) {
+async function issueAuthCookie(
+  c: Parameters<typeof setCookie>[0],
+  user: {
+    id: number;
+    email: string;
+    role: "customer" | "admin" | "driver";
+    name: string;
+  },
+) {
   const payload = {
     sub: user.id,
     email: user.email,

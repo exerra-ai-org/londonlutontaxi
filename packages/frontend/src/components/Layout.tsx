@@ -122,10 +122,10 @@ export default function Layout() {
 
         const applicationServerKey = Uint8Array.from(
           atob(
-            vapidPublicKey.replace(/-/g, "+").replace(/_/g, "/").padEnd(
-              Math.ceil(vapidPublicKey.length / 4) * 4,
-              "=",
-            ),
+            vapidPublicKey
+              .replace(/-/g, "+")
+              .replace(/_/g, "/")
+              .padEnd(Math.ceil(vapidPublicKey.length / 4) * 4, "="),
           ),
           (char) => char.charCodeAt(0),
         );

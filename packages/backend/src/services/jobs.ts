@@ -51,7 +51,9 @@ export function startBackgroundJobs(): void {
     void runTick();
   }, BACKGROUND_JOBS_TICK_SECONDS * 1_000);
 
-  if (typeof (timer as unknown as { unref?: () => void }).unref === "function") {
+  if (
+    typeof (timer as unknown as { unref?: () => void }).unref === "function"
+  ) {
     (timer as unknown as { unref: () => void }).unref();
   }
 
