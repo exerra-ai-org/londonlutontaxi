@@ -1,5 +1,5 @@
 import { api } from "./client";
-import type { Booking, PricingQuote } from "shared/types";
+import type { Booking, PricingQuote, PricingQuoteMulti } from "shared/types";
 
 export async function getQuote(
   from: string,
@@ -23,6 +23,26 @@ export async function getQuote(
   return api.get<PricingQuote>(`/api/pricing/quote?${params.toString()}`);
 }
 
+export async function getQuoteAllClasses(
+  from: string,
+  to: string,
+  opts?: {
+    fromLat?: number;
+    fromLon?: number;
+    toLat?: number;
+    toLon?: number;
+  },
+) {
+  const params = new URLSearchParams({ from, to });
+  if (opts?.fromLat != null) params.set("fromLat", String(opts.fromLat));
+  if (opts?.fromLon != null) params.set("fromLon", String(opts.fromLon));
+  if (opts?.toLat != null) params.set("toLat", String(opts.toLat));
+  if (opts?.toLon != null) params.set("toLon", String(opts.toLon));
+  return api.get<PricingQuoteMulti>(
+    `/api/pricing/quote-all?${params.toString()}`,
+  );
+}
+
 export async function createBooking(data: {
   pickupAddress: string;
   dropoffAddress: string;
@@ -32,6 +52,8 @@ export async function createBooking(data: {
   pickupLon?: number;
   dropoffLat?: number;
   dropoffLon?: number;
+  flightNumber?: string;
+  vehicleClass?: string;
 }) {
   return api.post<{ booking: Booking }>("/api/bookings", data);
 }
@@ -54,9 +76,26 @@ export async function getBooking(id: number) {
       driverName: string;
       driverPhone: string;
     }[];
+    vehicle: {
+      id: number;
+      class: string;
+      name: string;
+      passengerCapacity: number;
+      baggageCapacity: number;
+      description: string | null;
+      imageUrl: string | null;
+    } | null;
   }>(`/api/bookings/${id}`);
 }
 
 export async function cancelBooking(id: number) {
   return api.patch<{ booking: Booking }>(`/api/bookings/${id}/cancel`);
+}
+
+export async function getDriverLocation(bookingId: number) {
+  return api.get<{
+    lat: number | null;
+    lon: number | null;
+    lastUpdatedAt: string | null;
+  }>(`/api/bookings/${bookingId}/driver-location`);
 }

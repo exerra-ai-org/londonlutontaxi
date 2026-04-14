@@ -12,6 +12,8 @@ import {
   bookings,
   notificationSubscriptions,
   notificationEvents,
+  vehicles,
+  mileRates,
 } from "./schema";
 
 // Approximate GeoJSON polygon boundaries for London zones
@@ -193,6 +195,8 @@ async function seed() {
   await db.delete(bookings);
   await db.delete(zonePricing);
   await db.delete(fixedRoutes);
+  await db.delete(mileRates);
+  await db.delete(vehicles);
   await db.delete(coupons);
   await db.delete(zones);
   await db.delete(users);
@@ -203,13 +207,19 @@ async function seed() {
   await db.execute(sql`ALTER SEQUENCE fixed_routes_id_seq RESTART WITH 1`);
   await db.execute(sql`ALTER SEQUENCE coupons_id_seq RESTART WITH 1`);
   await db.execute(sql`ALTER SEQUENCE bookings_id_seq RESTART WITH 1`);
-  await db.execute(sql`ALTER SEQUENCE driver_assignments_id_seq RESTART WITH 1`);
+  await db.execute(
+    sql`ALTER SEQUENCE driver_assignments_id_seq RESTART WITH 1`,
+  );
   await db.execute(sql`ALTER SEQUENCE driver_heartbeats_id_seq RESTART WITH 1`);
   await db.execute(sql`ALTER SEQUENCE reviews_id_seq RESTART WITH 1`);
   await db.execute(
     sql`ALTER SEQUENCE notification_subscriptions_id_seq RESTART WITH 1`,
   );
-  await db.execute(sql`ALTER SEQUENCE notification_events_id_seq RESTART WITH 1`);
+  await db.execute(
+    sql`ALTER SEQUENCE notification_events_id_seq RESTART WITH 1`,
+  );
+  await db.execute(sql`ALTER SEQUENCE vehicles_id_seq RESTART WITH 1`);
+  await db.execute(sql`ALTER SEQUENCE mile_rates_id_seq RESTART WITH 1`);
 
   // ── Users ──────────────────────────────────────────
   const [admin] = await db
@@ -285,6 +295,40 @@ async function seed() {
     customer.id,
     "+ 3 more customers",
   );
+
+  // ── Vehicles ──────────────────────────────────────
+  await db.insert(vehicles).values([
+    {
+      class: "regular",
+      name: "Regular",
+      passengerCapacity: 3,
+      baggageCapacity: 2,
+      description: "Standard sedan, ideal for solo or small group travel",
+    },
+    {
+      class: "comfort",
+      name: "Comfort",
+      passengerCapacity: 4,
+      baggageCapacity: 3,
+      description: "Premium sedan with extra legroom and luggage space",
+    },
+    {
+      class: "max",
+      name: "Max",
+      passengerCapacity: 7,
+      baggageCapacity: 5,
+      description: "People carrier for larger groups and families",
+    },
+  ]);
+  console.log("  Vehicles created: 3");
+
+  // ── Mile Rates ──────���─────────────────────────────
+  await db.insert(mileRates).values([
+    { vehicleClass: "regular", baseFarePence: 500, ratePerMilePence: 250 },
+    { vehicleClass: "comfort", baseFarePence: 700, ratePerMilePence: 325 },
+    { vehicleClass: "max", baseFarePence: 1000, ratePerMilePence: 425 },
+  ]);
+  console.log("  Mile rates created: 3");
 
   // ── Zones with GeoJSON boundaries ─────────────────
   const zoneEntries = Object.entries(ZONE_GEODATA).map(([name, geo]) => ({
@@ -362,187 +406,187 @@ async function seed() {
   await db.insert(zonePricing).values(zonePricingData);
   console.log("  Zone pricing entries created:", zonePricingData.length);
 
-  // ── Fixed Routes ───────────────────────────────────
+  // ── Fixed Routes (per vehicle class) ────────────────
+
+  // Helper to generate per-class fixed route entries
+  const MULTIPLIERS = { regular: 1, comfort: 1.3, max: 1.7 };
+  function perClass(
+    name: string,
+    fromLabel: string,
+    toLabel: string,
+    basePricePence: number,
+    isAirport: boolean,
+  ) {
+    return (["regular", "comfort", "max"] as const).map((vc) => ({
+      name,
+      fromLabel,
+      toLabel,
+      pricePence: Math.round(basePricePence * MULTIPLIERS[vc]),
+      vehicleType: vc,
+      isAirport,
+    }));
+  }
 
   const fixedRouteData = [
     // Airport routes
-    {
-      name: "Heathrow → Central London",
-      fromLabel: "Heathrow",
-      toLabel: "Central London",
-      pricePence: 6500,
-      isAirport: true,
-    },
-    {
-      name: "Central London → Heathrow",
-      fromLabel: "Central London",
-      toLabel: "Heathrow",
-      pricePence: 6500,
-      isAirport: true,
-    },
-    {
-      name: "Gatwick → Central London",
-      fromLabel: "Gatwick",
-      toLabel: "Central London",
-      pricePence: 8500,
-      isAirport: true,
-    },
-    {
-      name: "Central London → Gatwick",
-      fromLabel: "Central London",
-      toLabel: "Gatwick",
-      pricePence: 8500,
-      isAirport: true,
-    },
-    {
-      name: "Heathrow ↔ Gatwick",
-      fromLabel: "Heathrow",
-      toLabel: "Gatwick",
-      pricePence: 12000,
-      isAirport: true,
-    },
-    {
-      name: "Stansted → Central London",
-      fromLabel: "Stansted",
-      toLabel: "Central London",
-      pricePence: 9500,
-      isAirport: true,
-    },
-    {
-      name: "Luton → Central London",
-      fromLabel: "Luton",
-      toLabel: "Central London",
-      pricePence: 8000,
-      isAirport: true,
-    },
-
-    // Common London routes (non-airport)
-    {
-      name: "Westminster → Canary Wharf",
-      fromLabel: "Westminster",
-      toLabel: "Canary Wharf",
-      pricePence: 3000,
-      isAirport: false,
-    },
-    {
-      name: "Canary Wharf → Westminster",
-      fromLabel: "Canary Wharf",
-      toLabel: "Westminster",
-      pricePence: 3000,
-      isAirport: false,
-    },
-    {
-      name: "King's Cross → Greenwich",
-      fromLabel: "King's Cross",
-      toLabel: "Greenwich",
-      pricePence: 3500,
-      isAirport: false,
-    },
-    {
-      name: "Greenwich → King's Cross",
-      fromLabel: "Greenwich",
-      toLabel: "King's Cross",
-      pricePence: 3500,
-      isAirport: false,
-    },
-    {
-      name: "Paddington → Liverpool Street",
-      fromLabel: "Paddington",
-      toLabel: "Liverpool Street",
-      pricePence: 2800,
-      isAirport: false,
-    },
-    {
-      name: "Liverpool Street → Paddington",
-      fromLabel: "Liverpool Street",
-      toLabel: "Paddington",
-      pricePence: 2800,
-      isAirport: false,
-    },
-    {
-      name: "Camden → London Bridge",
-      fromLabel: "Camden",
-      toLabel: "London Bridge",
-      pricePence: 2500,
-      isAirport: false,
-    },
-    {
-      name: "London Bridge → Camden",
-      fromLabel: "London Bridge",
-      toLabel: "Camden",
-      pricePence: 2500,
-      isAirport: false,
-    },
-    {
-      name: "Victoria → Stratford",
-      fromLabel: "Victoria",
-      toLabel: "Stratford",
-      pricePence: 3500,
-      isAirport: false,
-    },
-    {
-      name: "Stratford → Victoria",
-      fromLabel: "Stratford",
-      toLabel: "Victoria",
-      pricePence: 3500,
-      isAirport: false,
-    },
-    {
-      name: "Wimbledon → Central London",
-      fromLabel: "Wimbledon",
-      toLabel: "Central London",
-      pricePence: 4000,
-      isAirport: false,
-    },
-    {
-      name: "Central London → Wimbledon",
-      fromLabel: "Central London",
-      toLabel: "Wimbledon",
-      pricePence: 4000,
-      isAirport: false,
-    },
-    {
-      name: "Richmond → City of London",
-      fromLabel: "Richmond",
-      toLabel: "City of London",
-      pricePence: 3800,
-      isAirport: false,
-    },
-    {
-      name: "City of London → Richmond",
-      fromLabel: "City of London",
-      toLabel: "Richmond",
-      pricePence: 3800,
-      isAirport: false,
-    },
-    {
-      name: "Croydon → Central London",
-      fromLabel: "Croydon",
-      toLabel: "Central London",
-      pricePence: 4500,
-      isAirport: false,
-    },
-    {
-      name: "Central London → Croydon",
-      fromLabel: "Central London",
-      toLabel: "Croydon",
-      pricePence: 4500,
-      isAirport: false,
-    },
-    {
-      name: "Shoreditch → Westminster",
-      fromLabel: "Shoreditch",
-      toLabel: "Westminster",
-      pricePence: 3000,
-      isAirport: false,
-    },
-    {
-      name: "Westminster → Shoreditch",
-      fromLabel: "Westminster",
-      toLabel: "Shoreditch",
-      pricePence: 3000,
-      isAirport: false,
-    },
+    ...perClass(
+      "Heathrow → Central London",
+      "Heathrow",
+      "Central London",
+      6500,
+      true,
+    ),
+    ...perClass(
+      "Central London → Heathrow",
+      "Central London",
+      "Heathrow",
+      6500,
+      true,
+    ),
+    ...perClass(
+      "Gatwick → Central London",
+      "Gatwick",
+      "Central London",
+      8500,
+      true,
+    ),
+    ...perClass(
+      "Central London → Gatwick",
+      "Central London",
+      "Gatwick",
+      8500,
+      true,
+    ),
+    ...perClass("Heathrow ↔ Gatwick", "Heathrow", "Gatwick", 12000, true),
+    ...perClass(
+      "Stansted → Central London",
+      "Stansted",
+      "Central London",
+      9500,
+      true,
+    ),
+    ...perClass(
+      "Luton → Central London",
+      "Luton",
+      "Central London",
+      8000,
+      true,
+    ),
+    // Common London routes
+    ...perClass(
+      "Westminster → Canary Wharf",
+      "Westminster",
+      "Canary Wharf",
+      3000,
+      false,
+    ),
+    ...perClass(
+      "Canary Wharf → Westminster",
+      "Canary Wharf",
+      "Westminster",
+      3000,
+      false,
+    ),
+    ...perClass(
+      "King's Cross → Greenwich",
+      "King's Cross",
+      "Greenwich",
+      3500,
+      false,
+    ),
+    ...perClass(
+      "Greenwich → King's Cross",
+      "Greenwich",
+      "King's Cross",
+      3500,
+      false,
+    ),
+    ...perClass(
+      "Paddington → Liverpool Street",
+      "Paddington",
+      "Liverpool Street",
+      2800,
+      false,
+    ),
+    ...perClass(
+      "Liverpool Street → Paddington",
+      "Liverpool Street",
+      "Paddington",
+      2800,
+      false,
+    ),
+    ...perClass(
+      "Camden → London Bridge",
+      "Camden",
+      "London Bridge",
+      2500,
+      false,
+    ),
+    ...perClass(
+      "London Bridge → Camden",
+      "London Bridge",
+      "Camden",
+      2500,
+      false,
+    ),
+    ...perClass("Victoria → Stratford", "Victoria", "Stratford", 3500, false),
+    ...perClass("Stratford → Victoria", "Stratford", "Victoria", 3500, false),
+    ...perClass(
+      "Wimbledon → Central London",
+      "Wimbledon",
+      "Central London",
+      4000,
+      false,
+    ),
+    ...perClass(
+      "Central London → Wimbledon",
+      "Central London",
+      "Wimbledon",
+      4000,
+      false,
+    ),
+    ...perClass(
+      "Richmond → City of London",
+      "Richmond",
+      "City of London",
+      3800,
+      false,
+    ),
+    ...perClass(
+      "City of London → Richmond",
+      "City of London",
+      "Richmond",
+      3800,
+      false,
+    ),
+    ...perClass(
+      "Croydon → Central London",
+      "Croydon",
+      "Central London",
+      4500,
+      false,
+    ),
+    ...perClass(
+      "Central London → Croydon",
+      "Central London",
+      "Croydon",
+      4500,
+      false,
+    ),
+    ...perClass(
+      "Shoreditch → Westminster",
+      "Shoreditch",
+      "Westminster",
+      3000,
+      false,
+    ),
+    ...perClass(
+      "Westminster → Shoreditch",
+      "Westminster",
+      "Shoreditch",
+      3000,
+      false,
+    ),
   ];
 
   await db.insert(fixedRoutes).values(fixedRouteData);

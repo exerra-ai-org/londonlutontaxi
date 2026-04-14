@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
 import LandingMap from "./LandingMap";
+import VehicleSelect from "./booking-steps/VehicleSelect";
 import PriceDisplay from "./booking-steps/PriceDisplay";
 import CustomerDetails from "./booking-steps/CustomerDetails";
 import CouponStep from "./booking-steps/CouponStep";
@@ -16,20 +17,26 @@ export interface BookingData {
   date: string;
   time: string;
   pricePence: number;
-  routeType: "fixed" | "zone";
+  routeType: "fixed" | "mile";
   routeName: string | null;
   isAirport: boolean;
   couponCode?: string;
   discountPence: number;
   finalPricePence: number;
+  flightNumber?: string;
+  vehicleClass: "regular" | "comfort" | "max";
+  distanceMiles?: number;
+  baseFarePence?: number;
+  ratePerMilePence?: number;
 }
 
 const STEPS = [
   { num: 1, label: "Journey" },
-  { num: 2, label: "Price" },
-  { num: 3, label: "Details" },
-  { num: 4, label: "Coupon" },
-  { num: 5, label: "Confirm" },
+  { num: 2, label: "Vehicle" },
+  { num: 3, label: "Price" },
+  { num: 4, label: "Details" },
+  { num: 5, label: "Coupon" },
+  { num: 6, label: "Confirm" },
 ];
 
 export default function BookingFlow() {
@@ -44,8 +51,8 @@ export default function BookingFlow() {
     pickupAddress: prefill?.pickupAddress || "",
     dropoffAddress: prefill?.dropoffAddress || "",
     discountPence: 0,
+    vehicleClass: "regular",
   });
-
   function update(fields: Partial<BookingData>) {
     setData((prev) => ({ ...prev, ...fields }));
   }
@@ -105,7 +112,7 @@ export default function BookingFlow() {
 
       <div className="w-full max-w-2xl min-w-0">
         {step === 2 && (
-          <PriceDisplay
+          <VehicleSelect
             data={data}
             onNext={(fields) => {
               update(fields);
@@ -115,30 +122,41 @@ export default function BookingFlow() {
           />
         )}
         {step === 3 && (
-          <CustomerDetails
-            onNext={() => setStep(4)}
+          <PriceDisplay
+            data={data}
+            onNext={(fields) => {
+              update(fields);
+              setStep(4);
+            }}
             onBack={() => setStep(2)}
           />
         )}
         {step === 4 && (
-          <CouponStep
-            pricePence={data.pricePence || 0}
-            onNext={(fields) => {
-              update(fields);
-              setStep(5);
-            }}
+          <CustomerDetails
+            onNext={() => setStep(5)}
             onBack={() => setStep(3)}
           />
         )}
         {step === 5 && (
+          <CouponStep
+            pricePence={data.pricePence || 0}
+            onNext={(fields) => {
+              update(fields);
+              setStep(6);
+            }}
+            onBack={() => setStep(4)}
+          />
+        )}
+        {step === 6 && (
           <Confirmation
             data={data as BookingData}
-            onBack={() => setStep(4)}
+            onBack={() => setStep(5)}
             onReset={() => {
               setData({
                 pickupAddress: "",
                 dropoffAddress: "",
                 discountPence: 0,
+                vehicleClass: "regular",
               });
               setStep(1);
             }}

@@ -17,9 +17,28 @@ export default function MyRides() {
       const activeForHeartbeat = data.bookings.filter((b) =>
         ["assigned", "en_route"].includes(b.status),
       );
+
+      // Try to get GPS position for heartbeat
+      let lat: number | undefined;
+      let lon: number | undefined;
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(resolve, reject, {
+            timeout: 5000,
+            maximumAge: 10000,
+          }),
+        );
+        lat = pos.coords.latitude;
+        lon = pos.coords.longitude;
+      } catch {
+        // GPS unavailable or denied — send heartbeat without location
+      }
+
       await Promise.all(
         activeForHeartbeat.map((b) =>
-          api.post("/api/drivers/heartbeat", { bookingId: b.id }).catch(() => {}),
+          api
+            .post("/api/drivers/heartbeat", { bookingId: b.id, lat, lon })
+            .catch(() => {}),
         ),
       );
     } catch {

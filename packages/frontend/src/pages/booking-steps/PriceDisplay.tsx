@@ -1,8 +1,5 @@
-import { useEffect, useState } from "react";
 import type { BookingData } from "../BookingFlow";
-import { getQuote } from "../../api/bookings";
 import { formatPrice } from "../../lib/format";
-import { Skeleton } from "../../components/Skeleton";
 import { IconMapPin } from "../../components/icons";
 import RouteMap from "../../components/maps/RouteMap";
 
@@ -13,89 +10,53 @@ interface Props {
 }
 
 export default function PriceDisplay({ data, onNext, onBack }: Props) {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [quote, setQuote] = useState<{
-    pricePence: number;
-    routeType: "fixed" | "zone";
-    routeName: string | null;
-    isAirport: boolean;
-  } | null>(null);
-
-  useEffect(() => {
-    setLoading(true);
-    setError("");
-    getQuote(data.pickupAddress || "", data.dropoffAddress || "", {
-      fromLat: data.pickupLat,
-      fromLon: data.pickupLon,
-      toLat: data.dropoffLat,
-      toLon: data.dropoffLon,
-    })
-      .then((q) => setQuote(q))
-      .catch((err) => setError(err.message || "Failed to get price"))
-      .finally(() => setLoading(false));
-  }, [
-    data.pickupAddress,
-    data.dropoffAddress,
-    data.pickupLat,
-    data.pickupLon,
-    data.dropoffLat,
-    data.dropoffLon,
-  ]);
-
   const hasRouteCoords =
     data.pickupLat != null &&
     data.pickupLon != null &&
     data.dropoffLat != null &&
     data.dropoffLon != null;
 
-  if (loading) {
-    return (
-      <div className="space-y-4 py-8">
-        <Skeleton className="h-16 w-full" />
-        <Skeleton className="h-4 w-1/2 mx-auto" />
-      </div>
-    );
-  }
-
-  if (error || !quote) {
-    return (
-      <div className="space-y-4">
-        <div className="alert alert-error">
-          {error || "No pricing available for this route"}
-        </div>
-        <button onClick={onBack} className="subtle-link">
-          &larr; Change locations
-        </button>
-      </div>
-    );
-  }
+  const price = data.pricePence ?? 0;
 
   return (
     <div className="space-y-4">
       <div>
-        <p className="section-label">Step 02</p>
+        <p className="section-label">Step 03</p>
         <h2 className="mt-4 text-[32px] font-bold leading-[1.1] tracking-[-0.04em] text-[var(--color-dark)]">
           Your quote
         </h2>
       </div>
 
       <div className="glass-card p-6 text-center">
-        <div className="metric-value text-[56px]">
-          {formatPrice(quote.pricePence)}
-        </div>
-        {quote.routeName && (
-          <div className="caption-copy mt-1">{quote.routeName}</div>
+        <div className="metric-value text-[56px]">{formatPrice(price)}</div>
+        {data.routeName && (
+          <div className="caption-copy mt-1">{data.routeName}</div>
         )}
         <div className="mono-label mt-2">
-          {quote.routeType === "fixed" ? "Fixed route" : "Zone-based"} pricing
+          {data.vehicleClass
+            ? data.vehicleClass.charAt(0).toUpperCase() +
+              data.vehicleClass.slice(1)
+            : "Regular"}{" "}
+          · {data.routeType === "fixed" ? "Fixed route" : "Mile-based"} pricing
         </div>
-        {quote.isAirport && (
+        {data.distanceMiles != null && data.routeType === "mile" && (
+          <div className="caption-copy mt-2 space-y-0.5">
+            <div>
+              {data.distanceMiles.toFixed(1)} miles ×{" "}
+              {data.ratePerMilePence != null
+                ? formatPrice(data.ratePerMilePence) + "/mile"
+                : ""}
+            </div>
+            {data.baseFarePence != null && data.baseFarePence > 0 && (
+              <div>+ {formatPrice(data.baseFarePence)} base fare</div>
+            )}
+          </div>
+        )}
+        {data.isAirport && (
           <span className="ds-tag tag-airport mt-3 inline-flex">AIRPORT</span>
         )}
       </div>
 
-      {/* Route map when coords available */}
       {hasRouteCoords && (
         <RouteMap
           pickup={{ lat: data.pickupLat!, lon: data.pickupLon! }}
@@ -119,15 +80,7 @@ export default function PriceDisplay({ data, onNext, onBack }: Props) {
           Back
         </button>
         <button
-          onClick={() =>
-            onNext({
-              pricePence: quote.pricePence,
-              routeType: quote.routeType,
-              routeName: quote.routeName,
-              isAirport: quote.isAirport,
-              finalPricePence: quote.pricePence,
-            })
-          }
+          onClick={() => onNext({})}
           className="btn-primary w-full flex-1"
         >
           Continue

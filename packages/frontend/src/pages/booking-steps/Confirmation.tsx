@@ -16,6 +16,7 @@ export default function Confirmation({ data, onBack, onReset }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [flightNumber, setFlightNumber] = useState(data.flightNumber || "");
 
   async function handleConfirm() {
     setLoading(true);
@@ -31,6 +32,8 @@ export default function Confirmation({ data, onBack, onReset }: Props) {
         pickupLon: data.pickupLon,
         dropoffLat: data.dropoffLat,
         dropoffLon: data.dropoffLon,
+        flightNumber: flightNumber || undefined,
+        vehicleClass: data.vehicleClass,
       });
       setSuccess(true);
     } catch (err) {
@@ -133,9 +136,34 @@ export default function Confirmation({ data, onBack, onReset }: Props) {
           <span>Total</span>
           <span>{formatPrice(data.finalPricePence)}</span>
         </div>
+        {data.distanceMiles != null && (
+          <div className="data-pair">
+            <span>Distance</span>
+            <span>{data.distanceMiles.toFixed(1)} miles</span>
+          </div>
+        )}
         {data.isAirport && (
           <div className="text-center">
             <span className="ds-tag tag-airport">AIRPORT TRANSFER</span>
+          </div>
+        )}
+        {data.isAirport && (
+          <div className="space-y-2 pt-2 border-t border-[var(--color-border)]">
+            <label className="field-label block">
+              Flight Number{" "}
+              <span className="text-[var(--color-muted)]">(optional)</span>
+            </label>
+            <input
+              type="text"
+              value={flightNumber}
+              onChange={(e) => setFlightNumber(e.target.value.toUpperCase())}
+              placeholder="e.g. BA123"
+              maxLength={10}
+              className="input-glass w-full"
+            />
+            <p className="caption-copy">
+              We'll track your flight for delays and adjust pickup accordingly
+            </p>
           </div>
         )}
       </div>

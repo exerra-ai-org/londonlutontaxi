@@ -16,6 +16,8 @@ export const bookingStatusEnum = z.enum([
 
 export const userRoleEnum = z.enum(["customer", "admin", "driver"]);
 
+export const vehicleClassSchema = z.enum(["regular", "comfort", "max"]);
+
 export const createBookingSchema = z.object({
   pickupAddress: z.string().min(1),
   dropoffAddress: z.string().min(1),
@@ -25,6 +27,8 @@ export const createBookingSchema = z.object({
   pickupLon: z.number().optional(),
   dropoffLat: z.number().optional(),
   dropoffLon: z.number().optional(),
+  flightNumber: z.string().max(10).optional(),
+  vehicleClass: vehicleClassSchema.default("regular"),
 });
 
 export const loginSchema = z.object({
@@ -85,6 +89,8 @@ export const updateFixedRouteSchema = createFixedRouteSchema.partial().extend({
 
 export const driverHeartbeatSchema = z.object({
   bookingId: z.number().int().positive(),
+  lat: z.number().min(-90).max(90).optional(),
+  lon: z.number().min(-180).max(180).optional(),
 });
 
 export const notificationSubscriptionSchema = z.object({
@@ -104,4 +110,5 @@ export const pricingQuoteSchema = z.object({
   fromLon: z.coerce.number().optional(),
   toLat: z.coerce.number().optional(),
   toLon: z.coerce.number().optional(),
+  vehicleClass: vehicleClassSchema.optional(),
 });

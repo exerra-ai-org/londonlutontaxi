@@ -1,3 +1,5 @@
+export type VehicleClass = "regular" | "comfort" | "max";
+
 export type UserRole = "customer" | "admin" | "driver";
 
 export type BookingStatus =
@@ -38,6 +40,16 @@ export interface ZonePricing {
   vehicleType: string;
 }
 
+export interface Vehicle {
+  id: number;
+  class: VehicleClass;
+  name: string;
+  passengerCapacity: number;
+  baggageCapacity: number;
+  description: string | null;
+  imageUrl: string | null;
+}
+
 export interface FixedRoute {
   id: number;
   name: string;
@@ -66,6 +78,11 @@ export interface Booking {
   couponId: number | null;
   status: BookingStatus;
   isAirport: boolean;
+  flightNumber?: string | null;
+  vehicleClass: VehicleClass;
+  distanceMiles?: number | null;
+  ratePerMilePence?: number | null;
+  baseFarePence?: number | null;
   hasReview?: boolean;
   customerName?: string | null;
   customerPhone?: string | null;
@@ -107,6 +124,8 @@ export interface DriverHeartbeat {
   driverId: number;
   lastHeartbeatAt: Date;
   missedWindows: number;
+  lat?: number | null;
+  lon?: number | null;
 }
 
 export interface NotificationSubscription {
@@ -120,7 +139,29 @@ export interface NotificationSubscription {
 
 export interface PricingQuote {
   pricePence: number;
-  routeType: "fixed" | "zone";
+  routeType: "fixed" | "mile";
   routeName: string | null;
   isAirport: boolean;
+  distanceMiles?: number | null;
+  baseFarePence?: number | null;
+  ratePerMilePence?: number | null;
+}
+
+export interface PricingQuoteMulti {
+  quotes: {
+    vehicleClass: VehicleClass;
+    pricePence: number;
+    baseFarePence?: number;
+    ratePerMilePence?: number;
+  }[];
+  routeType: "fixed" | "mile";
+  routeName: string | null;
+  isAirport: boolean;
+  distanceMiles?: number | null;
+}
+
+export interface DriverLocation {
+  lat: number | null;
+  lon: number | null;
+  lastUpdatedAt: string | null;
 }

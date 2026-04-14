@@ -36,6 +36,12 @@ export const discountTypeEnum = pgEnum("discount_type", [
   "percentage",
 ]);
 
+export const vehicleClassEnum = pgEnum("vehicle_class", [
+  "regular",
+  "comfort",
+  "max",
+]);
+
 // ── Users ──────────────────────────────────────────────
 
 export const users = pgTable("users", {
@@ -46,6 +52,27 @@ export const users = pgTable("users", {
   role: userRoleEnum("role").notNull().default("customer"),
   passwordHash: text("password_hash"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ── Vehicles ──────────────────────────────────────────
+
+export const vehicles = pgTable("vehicles", {
+  id: serial("id").primaryKey(),
+  class: vehicleClassEnum("class").notNull().unique(),
+  name: text("name").notNull(),
+  passengerCapacity: integer("passenger_capacity").notNull(),
+  baggageCapacity: integer("baggage_capacity").notNull(),
+  description: text("description"),
+  imageUrl: text("image_url"),
+});
+
+// ── Mile Rates ────────────────────────────────────────
+
+export const mileRates = pgTable("mile_rates", {
+  id: serial("id").primaryKey(),
+  vehicleClass: vehicleClassEnum("vehicle_class").notNull().unique(),
+  baseFarePence: integer("base_fare_pence").notNull(),
+  ratePerMilePence: integer("rate_per_mile_pence").notNull(),
 });
 
 // ── Zones & Pricing ────────────────────────────────────
@@ -114,6 +141,11 @@ export const bookings = pgTable("bookings", {
   couponId: integer("coupon_id").references(() => coupons.id),
   status: bookingStatusEnum("status").notNull().default("scheduled"),
   isAirport: boolean("is_airport").notNull().default(false),
+  flightNumber: text("flight_number"),
+  vehicleClass: vehicleClassEnum("vehicle_class").notNull().default("regular"),
+  distanceMiles: doublePrecision("distance_miles"),
+  ratePerMilePence: integer("rate_per_mile_pence"),
+  baseFarePence: integer("base_fare_pence"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -144,6 +176,8 @@ export const driverHeartbeats = pgTable(
       .references(() => users.id),
     lastHeartbeatAt: timestamp("last_heartbeat_at").notNull().defaultNow(),
     missedWindows: integer("missed_windows").notNull().default(0),
+    lat: doublePrecision("lat"),
+    lon: doublePrecision("lon"),
   },
   (table) => [
     uniqueIndex("driver_heartbeats_booking_driver_unique").on(

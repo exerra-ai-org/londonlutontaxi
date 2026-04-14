@@ -26,7 +26,9 @@ const STATUS_LEFT_BORDER: Record<string, string> = {
 
 export default function BookingHistory() {
   const navigate = useNavigate();
-  const [bookings, setBookings] = useState<Array<Booking & { hasReview?: boolean }>>([]);
+  const [bookings, setBookings] = useState<
+    Array<Booking & { hasReview?: boolean }>
+  >([]);
   const [loading, setLoading] = useState(true);
   const [reviewBookingId, setReviewBookingId] = useState<number | null>(null);
   const { confirm, dialogProps } = useConfirm();
@@ -112,8 +114,9 @@ export default function BookingHistory() {
       {bookings.map((b, i) => (
         <div
           key={b.id}
-          className={`glass-card hover-lift animate-stagger-in border-l-4 p-4 ${STATUS_LEFT_BORDER[b.status] ?? "border-l-[var(--color-border-light)]"}`}
+          className={`glass-card hover-lift animate-stagger-in border-l-4 p-4 cursor-pointer ${STATUS_LEFT_BORDER[b.status] ?? "border-l-[var(--color-border-light)]"}`}
           style={{ animationDelay: `${i * 60}ms` }}
+          onClick={() => navigate(`/bookings/${b.id}`)}
         >
           <div className="flex items-start justify-between">
             <div className="space-y-1 flex-1 min-w-0 pr-3">
@@ -142,9 +145,24 @@ export default function BookingHistory() {
               {b.isAirport && (
                 <span className="ds-tag tag-airport">AIRPORT</span>
               )}
+              {b.flightNumber && (
+                <span className="mono-label text-xs">✈ {b.flightNumber}</span>
+              )}
+              <svg
+                className="h-4 w-4 text-[var(--color-muted)]"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <path d="M9 18l6-6-6-6" />
+              </svg>
             </div>
           </div>
-          <div className="mt-3 flex gap-4 border-t border-[var(--color-border)] pt-3">
+          <div
+            className="mt-3 flex gap-4 border-t border-[var(--color-border)] pt-3"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button onClick={() => handleRebook(b)} className="subtle-link">
               Rebook
             </button>

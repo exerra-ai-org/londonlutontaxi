@@ -10,7 +10,13 @@ import {
   BOOKING_MAX_DAYS,
 } from "shared/validation";
 import { db } from "../db/index";
-import { bookings, driverAssignments, users } from "../db/schema";
+import {
+  bookings,
+  driverAssignments,
+  users,
+  driverHeartbeats,
+  vehicles,
+} from "../db/schema";
 import { authMiddleware, type JwtPayload } from "../middleware/auth";
 import { requireRole } from "../middleware/auth";
 import { ok, err } from "../lib/response";
@@ -95,6 +101,8 @@ bookingRoutes.post("/", requireRole("customer"), async (c) => {
     pickupLon,
     dropoffLat,
     dropoffLon,
+    flightNumber,
+    vehicleClass,
   } = parsed.data;
   const scheduledDate = new Date(scheduledAt);
   const now = new Date();
@@ -105,6 +113,7 @@ bookingRoutes.post("/", requireRole("customer"), async (c) => {
     fromLon: pickupLon,
     toLat: dropoffLat,
     toLon: dropoffLon,
+    vehicleClass,
   });
   if (!quote) {
     return err(c, "No pricing available for this route", 400);
@@ -149,7 +158,9 @@ bookingRoutes.post("/", requireRole("customer"), async (c) => {
       if (couponCode) {
         const couponResult = await validateCoupon(couponCode, tx);
         if (!couponResult.valid || !couponResult.coupon) {
-          throw new BookingRequestError(couponResult.reason || "Invalid coupon");
+          throw new BookingRequestError(
+            couponResult.reason || "Invalid coupon",
+          );
         }
 
         const discount = applyCoupon(couponResult.coupon, quote.pricePence);
@@ -183,13 +194,21 @@ bookingRoutes.post("/", requireRole("customer"), async (c) => {
           discountPence,
           couponId,
           isAirport: quote.isAirport,
+          flightNumber: flightNumber ?? null,
+          vehicleClass,
+          distanceMiles: quote.distanceMiles ?? null,
+          ratePerMilePence: quote.ratePerMilePence ?? null,
+          baseFarePence: quote.baseFarePence ?? null,
         })
         .returning();
 
       return created;
     });
 
-    runAsyncSideEffect("notifyBookingCreated", notifyBookingCreated(booking.id));
+    runAsyncSideEffect(
+      "notifyBookingCreated",
+      notifyBookingCreated(booking.id),
+    );
 
     return ok(c, { booking }, 201);
   } catch (cause) {
@@ -312,7 +331,18 @@ bookingRoutes.get("/:id", async (c) => {
     .innerJoin(users, eq(driverAssignments.driverId, users.id))
     .where(eq(driverAssignments.bookingId, id));
 
-  return ok(c, { booking, assignments });
+  // Fetch vehicle info for this booking's class
+  const vehicleResult = await db
+    .select()
+    .from(vehicles)
+    .where(eq(vehicles.class, booking.vehicleClass))
+    .limit(1);
+
+  return ok(c, {
+    booking,
+    assignments,
+    vehicle: vehicleResult[0] ?? null,
+  });
 });
 
 // ── Update Status ──────────────────────────────────────
@@ -478,7 +508,11 @@ bookingRoutes.post("/:id/assign", requireRole("admin"), async (c) => {
 
   const booking = bookingResult[0];
   if (!["scheduled", "assigned"].includes(booking.status)) {
-    return err(c, "Can only assign drivers to scheduled or assigned rides", 400);
+    return err(
+      c,
+      "Can only assign drivers to scheduled or assigned rides",
+      400,
+    );
   }
 
   // Verify both drivers exist and are drivers
@@ -633,3 +667,69 @@ bookingRoutes.post("/:id/fallback", requireRole("admin"), async (c) => {
     assignments: updatedAssignments,
   });
 });
+
+// ── Driver Location (for customer tracking) ───────
+
+bookingRoutes.get(
+  "/:id/driver-location",
+  requireRole("customer"),
+  async (c) => {
+    const payload = c.get("jwtPayload") as JwtPayload;
+    const id = parseRouteId(c.req.param("id"));
+    if (!id) return err(c, "Invalid booking ID", 400);
+
+    const result = await db
+      .select()
+      .from(bookings)
+      .where(eq(bookings.id, id))
+      .limit(1);
+
+    if (result.length === 0) return err(c, "Booking not found", 404);
+
+    const booking = result[0];
+    if (booking.customerId !== payload.sub) return err(c, "Forbidden", 403);
+
+    const trackable: BookingStatus[] = ["assigned", "en_route", "arrived"];
+    if (!trackable.includes(booking.status)) {
+      return ok(c, { lat: null, lon: null, lastUpdatedAt: null });
+    }
+
+    // Find active primary driver
+    const primary = await db
+      .select()
+      .from(driverAssignments)
+      .where(
+        and(
+          eq(driverAssignments.bookingId, id),
+          eq(driverAssignments.isActive, true),
+          eq(driverAssignments.role, "primary"),
+        ),
+      )
+      .limit(1);
+
+    if (primary.length === 0) {
+      return ok(c, { lat: null, lon: null, lastUpdatedAt: null });
+    }
+
+    const heartbeat = await db
+      .select()
+      .from(driverHeartbeats)
+      .where(
+        and(
+          eq(driverHeartbeats.bookingId, id),
+          eq(driverHeartbeats.driverId, primary[0].driverId),
+        ),
+      )
+      .limit(1);
+
+    if (heartbeat.length === 0 || heartbeat[0].lat == null) {
+      return ok(c, { lat: null, lon: null, lastUpdatedAt: null });
+    }
+
+    return ok(c, {
+      lat: heartbeat[0].lat,
+      lon: heartbeat[0].lon,
+      lastUpdatedAt: heartbeat[0].lastHeartbeatAt.toISOString(),
+    });
+  },
+);

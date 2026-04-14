@@ -8,10 +8,12 @@ import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ActiveBookingRedirect from "./components/ActiveBookingRedirect";
 
 import Login from "./pages/Login";
 import BookingFlow from "./pages/BookingFlow";
 import BookingHistory from "./pages/BookingHistory";
+import CustomerRideDetail from "./pages/CustomerRideDetail";
 
 import RideTimeline from "./pages/admin/RideTimeline";
 import DriverManagement from "./pages/admin/DriverManagement";
@@ -33,11 +35,19 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Routes>
             <Route element={<Layout />}>
               <Route path="/login" element={<Login />} />
-              <Route path="/" element={<BookingFlow />} />
+              <Route
+                path="/"
+                element={
+                  <ActiveBookingRedirect>
+                    <BookingFlow />
+                  </ActiveBookingRedirect>
+                }
+              />
 
               {/* Customer — requires login */}
               <Route element={<ProtectedRoute roles={["customer"]} />}>
                 <Route path="/bookings" element={<BookingHistory />} />
+                <Route path="/bookings/:id" element={<CustomerRideDetail />} />
               </Route>
 
               {/* Admin */}
@@ -45,7 +55,10 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 <Route path="/admin" element={<RideTimeline />} />
                 <Route path="/admin/drivers" element={<DriverManagement />} />
                 <Route path="/admin/coupons" element={<CouponManagement />} />
-                <Route path="/admin/routes" element={<FixedRouteManagement />} />
+                <Route
+                  path="/admin/routes"
+                  element={<FixedRouteManagement />}
+                />
               </Route>
 
               {/* Driver */}

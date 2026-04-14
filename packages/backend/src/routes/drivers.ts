@@ -2,8 +2,17 @@ import { Hono } from "hono";
 import { eq, sql, and, inArray, gte } from "drizzle-orm";
 import { driverHeartbeatSchema } from "shared/validation";
 import { db } from "../db/index";
-import { users, driverAssignments, bookings, driverHeartbeats } from "../db/schema";
-import { authMiddleware, requireRole, type JwtPayload } from "../middleware/auth";
+import {
+  users,
+  driverAssignments,
+  bookings,
+  driverHeartbeats,
+} from "../db/schema";
+import {
+  authMiddleware,
+  requireRole,
+  type JwtPayload,
+} from "../middleware/auth";
 import { ok, err } from "../lib/response";
 import { runDriverWatchdog } from "../services/driverWatchdog";
 import { notifyWatchdogResult } from "../services/notifications";
@@ -73,7 +82,7 @@ driverRoutes.post(
       return err(c, "Invalid input", 400, parsed.error.flatten());
     }
 
-    const bookingId = parsed.data.bookingId;
+    const { bookingId, lat, lon } = parsed.data;
 
     const assignment = await db
       .select({
@@ -102,12 +111,16 @@ driverRoutes.post(
         driverId: payload.sub,
         lastHeartbeatAt: new Date(),
         missedWindows: 0,
+        lat: lat ?? null,
+        lon: lon ?? null,
       })
       .onConflictDoUpdate({
         target: [driverHeartbeats.bookingId, driverHeartbeats.driverId],
         set: {
           lastHeartbeatAt: new Date(),
           missedWindows: 0,
+          lat: lat ?? null,
+          lon: lon ?? null,
         },
       })
       .returning();
