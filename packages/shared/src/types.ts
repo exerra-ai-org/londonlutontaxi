@@ -79,6 +79,8 @@ export interface Booking {
   status: BookingStatus;
   isAirport: boolean;
   flightNumber?: string | null;
+  pickupFlightNumber?: string | null;
+  dropoffFlightNumber?: string | null;
   vehicleClass: VehicleClass;
   distanceMiles?: number | null;
   ratePerMilePence?: number | null;
@@ -157,6 +159,8 @@ export interface PricingQuoteMulti {
   routeType: "fixed" | "mile";
   routeName: string | null;
   isAirport: boolean;
+  isPickupAirport?: boolean;
+  isDropoffAirport?: boolean;
   distanceMiles?: number | null;
 }
 

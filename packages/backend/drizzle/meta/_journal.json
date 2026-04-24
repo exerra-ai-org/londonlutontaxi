@@ -36,6 +36,13 @@
       "when": 1775502605108,
       "tag": "0004_keen_greymalkin",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777038587449,
+      "tag": "0005_add_pickup_dropoff_flight_numbers",
+      "breakpoints": true
     }
   ]
 }

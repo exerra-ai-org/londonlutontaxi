@@ -11,17 +11,8 @@ import { getOsrmDistance } from "./osrm";
 
 const VEHICLE_CLASSES: VehicleClass[] = ["regular", "comfort", "max"];
 
-const AIRPORT_KEYWORDS = [
-  "heathrow",
-  "gatwick",
-  "stansted",
-  "luton",
-  "airport",
-];
-
 function isAirportAddress(address: string): boolean {
-  const lower = address.toLowerCase();
-  return AIRPORT_KEYWORDS.some((kw) => lower.includes(kw));
+  return address.toLowerCase().includes("airport");
 }
 
 export async function getZoneByAddress(address: string) {
@@ -224,6 +215,8 @@ export async function getPricingQuoteAllClasses(
     let routeType: "fixed" | "mile" = "mile";
     let routeName: string | null = null;
     let isAirport = false;
+    let isPickupAirport = false;
+    let isDropoffAirport = false;
     let distanceMiles: number | undefined;
 
     for (const vc of VEHICLE_CLASSES) {
@@ -252,7 +245,17 @@ export async function getPricingQuoteAllClasses(
 
     // If we found fixed routes for all classes, return them
     if (fixedQuotes.length === VEHICLE_CLASSES.length) {
-      return { quotes: fixedQuotes, routeType, routeName, isAirport };
+      // For fixed routes, detect per-address airport from the address text
+      isPickupAirport = isAirportAddress(from);
+      isDropoffAirport = isAirportAddress(to);
+      return {
+        quotes: fixedQuotes,
+        routeType,
+        routeName,
+        isAirport,
+        isPickupAirport,
+        isDropoffAirport,
+      };
     }
 
     // If some but not all fixed routes matched, try fallback to any fixed route
@@ -268,7 +271,16 @@ export async function getPricingQuoteAllClasses(
           });
         }
       }
-      return { quotes: fixedQuotes, routeType, routeName, isAirport };
+      isPickupAirport = isAirportAddress(from);
+      isDropoffAirport = isAirportAddress(to);
+      return {
+        quotes: fixedQuotes,
+        routeType,
+        routeName,
+        isAirport,
+        isPickupAirport,
+        isDropoffAirport,
+      };
     }
 
     // 2. Mile-based pricing — requires coordinates
@@ -290,7 +302,9 @@ export async function getPricingQuoteAllClasses(
     if (!osrm) return null;
 
     distanceMiles = osrm.distanceMiles;
-    isAirport = isAirportAddress(from) || isAirportAddress(to);
+    isPickupAirport = isAirportAddress(from);
+    isDropoffAirport = isAirportAddress(to);
+    isAirport = isPickupAirport || isDropoffAirport;
 
     const allRates = await db.select().from(mileRates);
     if (allRates.length === 0) return null;
@@ -316,6 +330,8 @@ export async function getPricingQuoteAllClasses(
       routeType: "mile",
       routeName: null,
       isAirport,
+      isPickupAirport,
+      isDropoffAirport,
       distanceMiles,
     };
   } catch (error) {

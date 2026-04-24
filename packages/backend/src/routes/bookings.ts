@@ -1,8 +1,9 @@
 import { Hono } from "hono";
-import { eq, and, desc, inArray, sql } from "drizzle-orm";
+import { eq, and, desc, inArray, sql, getTableColumns } from "drizzle-orm";
 import type { BookingStatus } from "shared/types";
 import {
   createBookingSchema,
+  updateBookingSchema,
   updateBookingStatusSchema,
   assignDriversSchema,
   BOOKING_MIN_HOURS_STANDARD,
@@ -102,6 +103,8 @@ bookingRoutes.post("/", requireRole("customer"), async (c) => {
     dropoffLat,
     dropoffLon,
     flightNumber,
+    pickupFlightNumber,
+    dropoffFlightNumber,
     vehicleClass,
   } = parsed.data;
   const scheduledDate = new Date(scheduledAt);
@@ -195,6 +198,8 @@ bookingRoutes.post("/", requireRole("customer"), async (c) => {
           couponId,
           isAirport: quote.isAirport,
           flightNumber: flightNumber ?? null,
+          pickupFlightNumber: pickupFlightNumber ?? null,
+          dropoffFlightNumber: dropoffFlightNumber ?? null,
           vehicleClass,
           distanceMiles: quote.distanceMiles ?? null,
           ratePerMilePence: quote.ratePerMilePence ?? null,
@@ -228,13 +233,28 @@ bookingRoutes.get("/", async (c) => {
   let results;
 
   if (payload.role === "customer") {
+    const bookingCols = getTableColumns(bookings);
     results = await db
       .select({
-        ...bookings,
+        ...bookingCols,
         hasReview: sql<boolean>`EXISTS (
           SELECT 1 FROM reviews r
-          WHERE r.booking_id = ${bookings.id}
+          WHERE r.booking_id = bookings.id
             AND r.customer_id = ${payload.sub}
+        )`,
+        primaryDriverName: sql<string | null>`(
+          SELECT u.name FROM driver_assignments da
+          JOIN users u ON u.id = da.driver_id
+          WHERE da.booking_id = bookings.id
+            AND da.is_active = true AND da.role = 'primary'
+          LIMIT 1
+        )`,
+        primaryDriverPhone: sql<string | null>`(
+          SELECT u.phone FROM driver_assignments da
+          JOIN users u ON u.id = da.driver_id
+          WHERE da.booking_id = bookings.id
+            AND da.is_active = true AND da.role = 'primary'
+          LIMIT 1
         )`,
       })
       .from(bookings)
@@ -343,6 +363,164 @@ bookingRoutes.get("/:id", async (c) => {
     assignments,
     vehicle: vehicleResult[0] ?? null,
   });
+});
+
+// ── Update Booking (edit by customer) ─────────────────
+
+bookingRoutes.patch("/:id", requireRole("customer"), async (c) => {
+  const payload = c.get("jwtPayload") as JwtPayload;
+  const id = parseRouteId(c.req.param("id"));
+  if (!id) return err(c, "Invalid booking ID", 400);
+
+  const body = await c.req.json();
+  const parsed = updateBookingSchema.safeParse(body);
+  if (!parsed.success) {
+    return err(c, "Invalid input", 400, parsed.error.flatten());
+  }
+
+  const result = await db
+    .select()
+    .from(bookings)
+    .where(eq(bookings.id, id))
+    .limit(1);
+
+  if (result.length === 0) return err(c, "Booking not found", 404);
+
+  const booking = result[0];
+
+  if (booking.customerId !== payload.sub) {
+    return err(c, "Forbidden", 403);
+  }
+
+  const editable: BookingStatus[] = ["scheduled", "assigned"];
+  if (!editable.includes(booking.status)) {
+    return err(c, "Booking can only be edited when scheduled or assigned", 400);
+  }
+
+  // Check minimum time: booking must still be far enough in the future
+  const now = new Date();
+  const scheduledDate = parsed.data.scheduledAt
+    ? new Date(parsed.data.scheduledAt)
+    : booking.scheduledAt;
+
+  // Determine min hours based on pickup zone
+  const pickupAddress = parsed.data.pickupAddress ?? booking.pickupAddress;
+  const pickupLatVal = parsed.data.pickupLat ?? booking.pickupLat;
+  const pickupLonVal = parsed.data.pickupLon ?? booking.pickupLon;
+
+  let pickupZone = null;
+  if (pickupLatVal != null && pickupLonVal != null) {
+    pickupZone = await getZoneByCoordinates(pickupLatVal, pickupLonVal);
+  }
+  if (!pickupZone) {
+    pickupZone = await getZoneByAddress(pickupAddress);
+  }
+  const minHours =
+    pickupZone && isLondonZone(pickupZone.name)
+      ? BOOKING_MIN_HOURS_LONDON
+      : BOOKING_MIN_HOURS_STANDARD;
+
+  // The current scheduled time must be at least minHours away (can't edit a ride that's too soon)
+  const minTimeForEdit = new Date(now.getTime() + minHours * 60 * 60 * 1000);
+  if (booking.scheduledAt < minTimeForEdit) {
+    return err(
+      c,
+      `Cannot edit a booking less than ${minHours} hours before its scheduled time`,
+      400,
+    );
+  }
+
+  // If changing scheduledAt, validate the new time
+  if (parsed.data.scheduledAt) {
+    if (scheduledDate < minTimeForEdit) {
+      return err(
+        c,
+        `New time must be at least ${minHours} hours in advance`,
+        400,
+      );
+    }
+    const maxTime = new Date(
+      now.getTime() + BOOKING_MAX_DAYS * 24 * 60 * 60 * 1000,
+    );
+    if (scheduledDate > maxTime) {
+      return err(
+        c,
+        `Booking cannot be more than ${BOOKING_MAX_DAYS} days in advance`,
+        400,
+      );
+    }
+  }
+
+  // Recalculate price if locations changed
+  const dropoffAddress = parsed.data.dropoffAddress ?? booking.dropoffAddress;
+  const dropoffLatVal = parsed.data.dropoffLat ?? booking.dropoffLat;
+  const dropoffLonVal = parsed.data.dropoffLon ?? booking.dropoffLon;
+  const locationsChanged =
+    parsed.data.pickupAddress != null ||
+    parsed.data.dropoffAddress != null ||
+    parsed.data.pickupLat != null ||
+    parsed.data.dropoffLat != null;
+
+  let priceUpdate: Record<string, unknown> = {};
+
+  if (locationsChanged) {
+    const quote = await getPricingQuote(pickupAddress, dropoffAddress, {
+      fromLat: pickupLatVal ?? undefined,
+      fromLon: pickupLonVal ?? undefined,
+      toLat: dropoffLatVal ?? undefined,
+      toLon: dropoffLonVal ?? undefined,
+      vehicleClass: booking.vehicleClass,
+    });
+    if (!quote) {
+      return err(c, "No pricing available for the updated route", 400);
+    }
+    priceUpdate = {
+      pricePence: quote.pricePence,
+      isAirport: quote.isAirport,
+      fixedRouteId: quote.fixedRouteId ?? null,
+      pickupZoneId: quote.pickupZoneId ?? null,
+      dropoffZoneId: quote.dropoffZoneId ?? null,
+      distanceMiles: quote.distanceMiles ?? null,
+      ratePerMilePence: quote.ratePerMilePence ?? null,
+      baseFarePence: quote.baseFarePence ?? null,
+    };
+  }
+
+  const updateFields: Record<string, unknown> = {
+    ...priceUpdate,
+  };
+
+  if (parsed.data.pickupAddress != null)
+    updateFields.pickupAddress = parsed.data.pickupAddress;
+  if (parsed.data.dropoffAddress != null)
+    updateFields.dropoffAddress = parsed.data.dropoffAddress;
+  if (parsed.data.scheduledAt != null) updateFields.scheduledAt = scheduledDate;
+  if (parsed.data.pickupLat !== undefined)
+    updateFields.pickupLat = parsed.data.pickupLat ?? null;
+  if (parsed.data.pickupLon !== undefined)
+    updateFields.pickupLon = parsed.data.pickupLon ?? null;
+  if (parsed.data.dropoffLat !== undefined)
+    updateFields.dropoffLat = parsed.data.dropoffLat ?? null;
+  if (parsed.data.dropoffLon !== undefined)
+    updateFields.dropoffLon = parsed.data.dropoffLon ?? null;
+  if (parsed.data.pickupFlightNumber !== undefined)
+    updateFields.pickupFlightNumber = parsed.data.pickupFlightNumber;
+  if (parsed.data.dropoffFlightNumber !== undefined)
+    updateFields.dropoffFlightNumber = parsed.data.dropoffFlightNumber;
+  if (parsed.data.flightNumber !== undefined)
+    updateFields.flightNumber = parsed.data.flightNumber;
+
+  if (Object.keys(updateFields).length === 0) {
+    return ok(c, { booking });
+  }
+
+  const [updated] = await db
+    .update(bookings)
+    .set(updateFields)
+    .where(eq(bookings.id, id))
+    .returning();
+
+  return ok(c, { booking: updated });
 });
 
 // ── Update Status ──────────────────────────────────────

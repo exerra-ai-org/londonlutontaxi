@@ -142,6 +142,8 @@ export const bookings = pgTable("bookings", {
   status: bookingStatusEnum("status").notNull().default("scheduled"),
   isAirport: boolean("is_airport").notNull().default(false),
   flightNumber: text("flight_number"),
+  pickupFlightNumber: text("pickup_flight_number"),
+  dropoffFlightNumber: text("dropoff_flight_number"),
   vehicleClass: vehicleClassEnum("vehicle_class").notNull().default("regular"),
   distanceMiles: doublePrecision("distance_miles"),
   ratePerMilePence: integer("rate_per_mile_pence"),
