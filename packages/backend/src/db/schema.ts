@@ -22,6 +22,7 @@ export const bookingStatusEnum = pgEnum("booking_status", [
   "assigned",
   "en_route",
   "arrived",
+  "in_progress",
   "completed",
   "cancelled",
 ]);
@@ -51,7 +52,28 @@ export const users = pgTable("users", {
   phone: text("phone"),
   role: userRoleEnum("role").notNull().default("customer"),
   passwordHash: text("password_hash"),
+  magicLinkToken: text("magic_link_token"),
+  magicLinkExpiresAt: timestamp("magic_link_expires_at"),
+  resetPasswordToken: text("reset_password_token"),
+  resetPasswordExpiresAt: timestamp("reset_password_expires_at"),
+  invitationToken: text("invitation_token"),
+  invitationTokenExpiresAt: timestamp("invitation_token_expires_at"),
+  profilePictureUrl: text("profile_picture_url"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ── Driver Profiles ────────────────────────────────
+export const driverProfiles = pgTable("driver_profiles", {
+  driverId: integer("driver_id")
+    .primaryKey()
+    .references(() => users.id),
+  vehicleMake: text("vehicle_make"),
+  vehicleModel: text("vehicle_model"),
+  vehicleYear: integer("vehicle_year"),
+  vehicleColor: text("vehicle_color"),
+  licensePlate: text("license_plate"),
+  vehicleClass: vehicleClassEnum("vehicle_class"),
+  bio: text("bio"),
 });
 
 // ── Vehicles ──────────────────────────────────────────
@@ -217,6 +239,22 @@ export const notificationEvents = pgTable("notification_events", {
   eventKey: text("event_key").notNull().unique(),
   bookingId: integer("booking_id").references(() => bookings.id),
   userId: integer("user_id").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// ── Incidents ──────────────────────────────────────────
+
+export const incidents = pgTable("incidents", {
+  id: serial("id").primaryKey(),
+  bookingId: integer("booking_id")
+    .notNull()
+    .references(() => bookings.id),
+  reporterId: integer("reporter_id")
+    .notNull()
+    .references(() => users.id),
+  type: text("type").notNull().default("contact_admin"),
+  message: text("message"),
+  resolved: boolean("resolved").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

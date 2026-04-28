@@ -10,6 +10,7 @@ export const bookingStatusEnum = z.enum([
   "assigned",
   "en_route",
   "arrived",
+  "in_progress",
   "completed",
   "cancelled",
 ]);
@@ -59,7 +60,47 @@ export const checkEmailSchema = z.object({
 export const registerSchema = z.object({
   email: z.string().email(),
   name: z.string().min(1),
-  phone: z.string().min(6),
+  phone: z.string().min(6).optional(),
+  password: z.string().min(8).optional(),
+});
+
+export const magicLinkRequestSchema = z.object({
+  email: z.string().email(),
+});
+
+export const magicLinkVerifySchema = z.object({
+  token: z.string().min(1),
+});
+
+export const passwordResetRequestSchema = z.object({
+  email: z.string().email(),
+});
+
+export const passwordResetVerifySchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8),
+});
+
+export const inviteUserSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(1),
+  role: z.enum(["driver", "admin"]),
+});
+
+export const acceptInvitationSchema = z.object({
+  token: z.string().min(1),
+  password: z.string().min(8),
+});
+
+export const driverProfileSchema = z.object({
+  vehicleMake: z.string().min(1).optional(),
+  vehicleModel: z.string().min(1).optional(),
+  vehicleYear: z.number().int().min(1990).max(2100).optional(),
+  vehicleColor: z.string().min(1).optional(),
+  licensePlate: z.string().min(1).optional(),
+  vehicleClass: z.enum(["regular", "comfort", "max"]).optional(),
+  bio: z.string().max(500).optional(),
+  profilePictureUrl: z.string().url().optional(),
 });
 
 export const updateBookingStatusSchema = z.object({
@@ -116,6 +157,26 @@ export const notificationSubscriptionSchema = z.object({
 
 export const notificationUnsubscribeSchema = z.object({
   endpoint: z.string().url(),
+});
+
+export const updateProfileSchema = z.object({
+  name: z.string().min(1).optional(),
+  phone: z.string().min(5).optional().nullable(),
+});
+
+export const updateUserSchema = z.object({
+  name: z.string().min(1).optional(),
+  phone: z.string().min(5).optional().nullable(),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8),
+});
+
+export const reportIncidentSchema = z.object({
+  type: z.enum(["emergency", "contact_admin"]),
+  message: z.string().max(500).optional(),
 });
 
 export const pricingQuoteSchema = z.object({

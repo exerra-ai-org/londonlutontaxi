@@ -7,6 +7,7 @@ export type BookingStatus =
   | "assigned"
   | "en_route"
   | "arrived"
+  | "in_progress"
   | "completed"
   | "cancelled";
 
@@ -168,4 +169,25 @@ export interface DriverLocation {
   lat: number | null;
   lon: number | null;
   lastUpdatedAt: string | null;
+  distanceMiles: number | null;
+}
+
+export interface DriverProfile {
+  driverId: number;
+  vehicleMake: string | null;
+  vehicleModel: string | null;
+  vehicleYear: number | null;
+  vehicleColor: string | null;
+  licensePlate: string | null;
+  vehicleClass: VehicleClass | null;
+  bio: string | null;
+}
+
+export interface PublicDriverProfile {
+  id: number;
+  name: string;
+  profilePictureUrl: string | null;
+  avgRating: number | null;
+  totalReviews: number;
+  vehicle: DriverProfile | null;
 }

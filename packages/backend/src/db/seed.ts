@@ -262,6 +262,7 @@ async function seed() {
       name: "Test Customer",
       phone: "07700000004",
       role: "customer",
+      passwordHash: await Bun.password.hash("customer123"),
     })
     .returning();
 
