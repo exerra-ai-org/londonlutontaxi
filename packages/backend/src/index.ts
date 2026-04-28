@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { join } from "path";
 import { authRoutes } from "./routes/auth";
 import { pricingRoutes } from "./routes/pricing";
 import { bookingRoutes } from "./routes/bookings";
@@ -11,6 +12,8 @@ import { zoneRoutes } from "./routes/zones";
 import { fixedRouteRoutes } from "./routes/fixedRoutes";
 import { notificationRoutes } from "./routes/notifications";
 import { vehicleRoutes } from "./routes/vehicles";
+import { adminRoutes } from "./routes/admin";
+import { uploadRoutes } from "./routes/upload";
 import { startBackgroundJobs } from "./services/jobs";
 
 const app = new Hono();
@@ -38,6 +41,26 @@ app.route("/api/zones", zoneRoutes);
 app.route("/api/fixed-routes", fixedRouteRoutes);
 app.route("/api/notifications", notificationRoutes);
 app.route("/api/vehicles", vehicleRoutes);
+app.route("/api/admin", adminRoutes);
+app.route("/api/upload", uploadRoutes);
+
+// Serve uploaded files
+const UPLOAD_DIR = join(import.meta.dir, "../uploads");
+app.get("/uploads/:filename", async (c) => {
+  const filename = c.req.param("filename");
+  // Prevent path traversal
+  if (filename.includes("..") || filename.includes("/")) {
+    return c.text("Not found", 404);
+  }
+  const file = Bun.file(join(UPLOAD_DIR, filename));
+  if (!(await file.exists())) return c.text("Not found", 404);
+  return new Response(file, {
+    headers: {
+      "Content-Type": file.type,
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
+  });
+});
 
 startBackgroundJobs();
 
