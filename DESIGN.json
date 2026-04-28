@@ -8,118 +8,327 @@
         "role": "neutral",
         "displayName": "Off-White Canvas",
         "canonical": "#f9f9f9",
-        "tonalRamp": ["#131313", "#3a3a3a", "#5a5d5f", "#7d8082", "#a4a6a8", "#c8caca", "#e5e5e5", "#f9f9f9"]
+        "tonalRamp": [
+          "#131313",
+          "#3a3a3a",
+          "#5a5d5f",
+          "#7d8082",
+          "#a4a6a8",
+          "#c8caca",
+          "#e5e5e5",
+          "#f9f9f9"
+        ]
       },
       "surface": {
         "role": "neutral",
         "displayName": "Surface White",
         "canonical": "#ffffff",
-        "tonalRamp": ["#1a1a1a", "#3a3a3a", "#7d8082", "#b4b6b8", "#d3d3d3", "#e5e5e5", "#f3f3f3", "#ffffff"]
+        "tonalRamp": [
+          "#1a1a1a",
+          "#3a3a3a",
+          "#7d8082",
+          "#b4b6b8",
+          "#d3d3d3",
+          "#e5e5e5",
+          "#f3f3f3",
+          "#ffffff"
+        ]
       },
       "surface-alt": {
         "role": "neutral",
         "displayName": "Surface Alt",
         "canonical": "#f3f3f3",
-        "tonalRamp": ["#1f1f1f", "#3a3a3a", "#7d8082", "#b4b6b8", "#d3d3d3", "#e5e5e5", "#f3f3f3", "#fafafa"]
+        "tonalRamp": [
+          "#1f1f1f",
+          "#3a3a3a",
+          "#7d8082",
+          "#b4b6b8",
+          "#d3d3d3",
+          "#e5e5e5",
+          "#f3f3f3",
+          "#fafafa"
+        ]
       },
       "dark": {
         "role": "primary",
         "displayName": "Concierge Black",
         "canonical": "#131313",
-        "tonalRamp": ["#000000", "#0a0a0a", "#131313", "#222222", "#3a3a3a", "#5a5d5f", "#7d8082", "#a4a6a8"]
+        "tonalRamp": [
+          "#000000",
+          "#0a0a0a",
+          "#131313",
+          "#222222",
+          "#3a3a3a",
+          "#5a5d5f",
+          "#7d8082",
+          "#a4a6a8"
+        ]
       },
       "mid": {
         "role": "neutral",
         "displayName": "Mid Grey",
         "canonical": "#3a3a3a",
-        "tonalRamp": ["#0a0a0a", "#131313", "#222222", "#3a3a3a", "#5a5d5f", "#7d8082", "#a4a6a8", "#c8caca"]
+        "tonalRamp": [
+          "#0a0a0a",
+          "#131313",
+          "#222222",
+          "#3a3a3a",
+          "#5a5d5f",
+          "#7d8082",
+          "#a4a6a8",
+          "#c8caca"
+        ]
       },
       "muted": {
         "role": "neutral",
         "displayName": "Muted Grey",
         "canonical": "#7d8082",
-        "tonalRamp": ["#131313", "#3a3a3a", "#5a5d5f", "#7d8082", "#a4a6a8", "#c8caca", "#e5e5e5", "#f3f3f3"]
+        "tonalRamp": [
+          "#131313",
+          "#3a3a3a",
+          "#5a5d5f",
+          "#7d8082",
+          "#a4a6a8",
+          "#c8caca",
+          "#e5e5e5",
+          "#f3f3f3"
+        ]
       },
       "border": {
         "role": "neutral",
         "displayName": "Hairline Border",
         "canonical": "#e5e5e5",
-        "tonalRamp": ["#3a3a3a", "#7d8082", "#a4a6a8", "#c8caca", "#d3d3d3", "#e5e5e5", "#f0f0f0", "#fafafa"]
+        "tonalRamp": [
+          "#3a3a3a",
+          "#7d8082",
+          "#a4a6a8",
+          "#c8caca",
+          "#d3d3d3",
+          "#e5e5e5",
+          "#f0f0f0",
+          "#fafafa"
+        ]
       },
       "border-light": {
         "role": "neutral",
         "displayName": "Control Outline",
         "canonical": "#d3d3d3",
-        "tonalRamp": ["#3a3a3a", "#7d8082", "#a4a6a8", "#c8caca", "#d3d3d3", "#e0e0e0", "#ededed", "#f9f9f9"]
+        "tonalRamp": [
+          "#3a3a3a",
+          "#7d8082",
+          "#a4a6a8",
+          "#c8caca",
+          "#d3d3d3",
+          "#e0e0e0",
+          "#ededed",
+          "#f9f9f9"
+        ]
       },
       "green": {
         "role": "primary",
         "displayName": "Console Green",
         "canonical": "#98fe00",
-        "tonalRamp": ["#1f3300", "#365800", "#4d7d00", "#6ba800", "#86d100", "#98fe00", "#bcff5e", "#e3ffb3"]
+        "tonalRamp": [
+          "#1f3300",
+          "#365800",
+          "#4d7d00",
+          "#6ba800",
+          "#86d100",
+          "#98fe00",
+          "#bcff5e",
+          "#e3ffb3"
+        ]
       },
       "blue-light": {
         "role": "tertiary",
         "displayName": "Scheduled Blue (tint)",
         "canonical": "#d2e9fe",
-        "tonalRamp": ["#0e2a44", "#1a4673", "#2868a3", "#3a8bd1", "#5fa6e0", "#8fc5f2", "#b6dafa", "#d2e9fe"]
+        "tonalRamp": [
+          "#0e2a44",
+          "#1a4673",
+          "#2868a3",
+          "#3a8bd1",
+          "#5fa6e0",
+          "#8fc5f2",
+          "#b6dafa",
+          "#d2e9fe"
+        ]
       },
       "blue-mid": {
         "role": "tertiary",
         "displayName": "Scheduled Blue (border)",
         "canonical": "#8fc5f2",
-        "tonalRamp": ["#0e2a44", "#1a4673", "#2868a3", "#3a8bd1", "#5fa6e0", "#8fc5f2", "#b6dafa", "#d2e9fe"]
+        "tonalRamp": [
+          "#0e2a44",
+          "#1a4673",
+          "#2868a3",
+          "#3a8bd1",
+          "#5fa6e0",
+          "#8fc5f2",
+          "#b6dafa",
+          "#d2e9fe"
+        ]
       },
       "orange": {
         "role": "tertiary",
         "displayName": "Assigned Orange",
         "canonical": "#ff9500",
-        "tonalRamp": ["#3a2200", "#664000", "#8f5800", "#b87000", "#e08600", "#ff9500", "#ffb24d", "#ffd699"]
+        "tonalRamp": [
+          "#3a2200",
+          "#664000",
+          "#8f5800",
+          "#b87000",
+          "#e08600",
+          "#ff9500",
+          "#ffb24d",
+          "#ffd699"
+        ]
       },
       "navy": {
         "role": "tertiary",
         "displayName": "En-route Navy",
         "canonical": "#2f3d4a",
-        "tonalRamp": ["#0a1018", "#141d28", "#1f2c39", "#2f3d4a", "#475a6c", "#6a7d90", "#9aa9b8", "#cbd4dd"]
+        "tonalRamp": [
+          "#0a1018",
+          "#141d28",
+          "#1f2c39",
+          "#2f3d4a",
+          "#475a6c",
+          "#6a7d90",
+          "#9aa9b8",
+          "#cbd4dd"
+        ]
       },
       "forest": {
         "role": "tertiary",
         "displayName": "Arrived Forest",
         "canonical": "#233802",
-        "tonalRamp": ["#0c1300", "#162200", "#1c2d01", "#233802", "#3b5904", "#5d8208", "#86b323", "#bce06a"]
+        "tonalRamp": [
+          "#0c1300",
+          "#162200",
+          "#1c2d01",
+          "#233802",
+          "#3b5904",
+          "#5d8208",
+          "#86b323",
+          "#bce06a"
+        ]
       },
       "error": {
         "role": "tertiary",
         "displayName": "Error Red",
         "canonical": "#d14b4b",
-        "tonalRamp": ["#330d0d", "#591818", "#7d2424", "#9c2f2f", "#b73a3a", "#d14b4b", "#e07a7a", "#f0b3b3"]
+        "tonalRamp": [
+          "#330d0d",
+          "#591818",
+          "#7d2424",
+          "#9c2f2f",
+          "#b73a3a",
+          "#d14b4b",
+          "#e07a7a",
+          "#f0b3b3"
+        ]
       }
     },
     "typographyMeta": {
-      "metric": { "displayName": "Metric", "purpose": "Hero number on summary screens — fares, totals, distances. One per surface." },
-      "display": { "displayName": "Display", "purpose": "Page title. One per page, top-of-page." },
-      "body-large": { "displayName": "Body Large", "purpose": "Lead paragraph; primary copy on confirmation screens." },
-      "body": { "displayName": "Body", "purpose": "All running text, form values, list rows." },
-      "caption": { "displayName": "Caption", "purpose": "Supporting copy, meta lines under cards." },
-      "label": { "displayName": "Mono Label", "purpose": "Section labels, field labels, table headers, status pills, eyebrows. Always uppercase." }
+      "metric": {
+        "displayName": "Metric",
+        "purpose": "Hero number on summary screens — fares, totals, distances. One per surface."
+      },
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page title. One per page, top-of-page."
+      },
+      "body-large": {
+        "displayName": "Body Large",
+        "purpose": "Lead paragraph; primary copy on confirmation screens."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "All running text, form values, list rows."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Supporting copy, meta lines under cards."
+      },
+      "label": {
+        "displayName": "Mono Label",
+        "purpose": "Section labels, field labels, table headers, status pills, eyebrows. Always uppercase."
+      }
     },
     "shadows": [
-      { "name": "card-rest", "value": "0 14px 40px rgb(19 19 19 / 0.06)", "purpose": "Default soft shadow on .page-card and .ds-card." },
-      { "name": "card-hover", "value": "0 18px 36px rgb(19 19 19 / 0.08)", "purpose": "Activated by .hover-lift modifier together with -2px translate." },
-      { "name": "btn-primary-hover", "value": "0 16px 30px rgb(19 19 19 / 0.12)", "purpose": "Concierge Black CTA hover glow." },
-      { "name": "btn-green-hover", "value": "0 16px 30px rgb(152 254 0 / 0.16)", "purpose": "Console Green CTA hover glow." },
-      { "name": "overlay", "value": "0 28px 80px rgb(19 19 19 / 0.2)", "purpose": "Toasts, modals, floating panel — the only lifted tier." }
+      {
+        "name": "card-rest",
+        "value": "0 14px 40px rgb(19 19 19 / 0.06)",
+        "purpose": "Default soft shadow on .page-card and .ds-card."
+      },
+      {
+        "name": "card-hover",
+        "value": "0 18px 36px rgb(19 19 19 / 0.08)",
+        "purpose": "Activated by .hover-lift modifier together with -2px translate."
+      },
+      {
+        "name": "btn-primary-hover",
+        "value": "0 16px 30px rgb(19 19 19 / 0.12)",
+        "purpose": "Concierge Black CTA hover glow."
+      },
+      {
+        "name": "btn-green-hover",
+        "value": "0 16px 30px rgb(152 254 0 / 0.16)",
+        "purpose": "Console Green CTA hover glow."
+      },
+      {
+        "name": "overlay",
+        "value": "0 28px 80px rgb(19 19 19 / 0.2)",
+        "purpose": "Toasts, modals, floating panel — the only lifted tier."
+      }
     ],
     "motion": [
-      { "name": "ease-out-quint", "value": "cubic-bezier(0.2, 1, 0.3, 1)", "purpose": "The system's only easing curve. Use for every transition." },
-      { "name": "duration-fast", "value": "0.3s", "purpose": "Form focus, nav hover, color/border state changes." },
-      { "name": "duration-default", "value": "0.4s", "purpose": "Button hover, transform, shadow transitions." },
-      { "name": "duration-card", "value": "0.55s", "purpose": "Card transforms — slow enough to feel deliberate." },
-      { "name": "fade-in", "value": "0.5s ease-out-quint", "purpose": "Mount fades for screens and overlays." },
-      { "name": "slide-up", "value": "0.7s ease-out-quint", "purpose": "Section entrances; staggered with .animate-stagger-in." },
-      { "name": "scale-in", "value": "0.7s ease-out-quint", "purpose": "Modal/floating-panel entrances." },
-      { "name": "status-sheen", "value": "0.75s ease-out-quint", "purpose": "Left-to-right gloss across status pills on hover. One-off, not looping." },
-      { "name": "pulse-ring", "value": "1.5s ease-out infinite", "purpose": "Live-state indicator. The one infinite animation, only for system-live cues." }
+      {
+        "name": "ease-out-quint",
+        "value": "cubic-bezier(0.2, 1, 0.3, 1)",
+        "purpose": "The system's only easing curve. Use for every transition."
+      },
+      {
+        "name": "duration-fast",
+        "value": "0.3s",
+        "purpose": "Form focus, nav hover, color/border state changes."
+      },
+      {
+        "name": "duration-default",
+        "value": "0.4s",
+        "purpose": "Button hover, transform, shadow transitions."
+      },
+      {
+        "name": "duration-card",
+        "value": "0.55s",
+        "purpose": "Card transforms — slow enough to feel deliberate."
+      },
+      {
+        "name": "fade-in",
+        "value": "0.5s ease-out-quint",
+        "purpose": "Mount fades for screens and overlays."
+      },
+      {
+        "name": "slide-up",
+        "value": "0.7s ease-out-quint",
+        "purpose": "Section entrances; staggered with .animate-stagger-in."
+      },
+      {
+        "name": "scale-in",
+        "value": "0.7s ease-out-quint",
+        "purpose": "Modal/floating-panel entrances."
+      },
+      {
+        "name": "status-sheen",
+        "value": "0.75s ease-out-quint",
+        "purpose": "Left-to-right gloss across status pills on hover. One-off, not looping."
+      },
+      {
+        "name": "pulse-ring",
+        "value": "1.5s ease-out infinite",
+        "purpose": "Live-state indicator. The one infinite animation, only for system-live cues."
+      }
     ],
     "breakpoints": [
       { "name": "mobile-max", "value": "809px" },
@@ -204,14 +413,46 @@
       "Motion is exclusively cubic-bezier(0.2, 1, 0.3, 1) (ease-out-quint). State only, no choreography."
     ],
     "rules": [
-      { "name": "The One Voice Rule", "body": "Console Green appears on no more than 10% of any given screen. It marks one thing per surface — the active CTA, the completed step, the live status — never two simultaneously.", "section": "colors" },
-      { "name": "The No-Black-On-White Rule", "body": "Pure #000 is forbidden. Every dark surface uses Concierge Black #131313, paired with off-white canvas #f9f9f9.", "section": "colors" },
-      { "name": "The Status-Hue Lockbox Rule", "body": "Each status hue maps to exactly one booking lifecycle state. They are not borrowed for other UI roles.", "section": "colors" },
-      { "name": "The Mono Label Rule", "body": "Every section heading, field label, table header, and data key is set in Roboto Mono 11px uppercase with 0.08em tracking. Satoshi is never used at small sizes uppercase; mono is never used at body sizes.", "section": "typography" },
-      { "name": "The Slash Marker Rule", "body": "Section labels render with a leading / glyph and a trailing flex-fill hairline. This is the system's signature; do not strip it.", "section": "typography" },
-      { "name": "The Negative Tracking Rule", "body": "All Satoshi sizes use slightly negative letter-spacing. Positive tracking on Satoshi is forbidden.", "section": "typography" },
-      { "name": "The Flat-By-Default Rule", "body": "Surfaces are flat. Shadow is a response to state — hover, focus, overlay — not a default treatment.", "section": "elevation" },
-      { "name": "The 4px Radius Rule", "body": "The default radius is 4px. Use 14px and 20px only for floating overlays. Do not introduce a new radius value mid-system.", "section": "elevation" }
+      {
+        "name": "The One Voice Rule",
+        "body": "Console Green appears on no more than 10% of any given screen. It marks one thing per surface — the active CTA, the completed step, the live status — never two simultaneously.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Black-On-White Rule",
+        "body": "Pure #000 is forbidden. Every dark surface uses Concierge Black #131313, paired with off-white canvas #f9f9f9.",
+        "section": "colors"
+      },
+      {
+        "name": "The Status-Hue Lockbox Rule",
+        "body": "Each status hue maps to exactly one booking lifecycle state. They are not borrowed for other UI roles.",
+        "section": "colors"
+      },
+      {
+        "name": "The Mono Label Rule",
+        "body": "Every section heading, field label, table header, and data key is set in Roboto Mono 11px uppercase with 0.08em tracking. Satoshi is never used at small sizes uppercase; mono is never used at body sizes.",
+        "section": "typography"
+      },
+      {
+        "name": "The Slash Marker Rule",
+        "body": "Section labels render with a leading / glyph and a trailing flex-fill hairline. This is the system's signature; do not strip it.",
+        "section": "typography"
+      },
+      {
+        "name": "The Negative Tracking Rule",
+        "body": "All Satoshi sizes use slightly negative letter-spacing. Positive tracking on Satoshi is forbidden.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Surfaces are flat. Shadow is a response to state — hover, focus, overlay — not a default treatment.",
+        "section": "elevation"
+      },
+      {
+        "name": "The 4px Radius Rule",
+        "body": "The default radius is 4px. Use 14px and 20px only for floating overlays. Do not introduce a new radius value mid-system.",
+        "section": "elevation"
+      }
     ],
     "dos": [
       "Do read packages/frontend/src/styles/theme.css before writing any new component. Use the existing utility classes (.page-card, .ds-input, .btn-primary, .section-label, .data-pair, .status-pill) before introducing new ones.",

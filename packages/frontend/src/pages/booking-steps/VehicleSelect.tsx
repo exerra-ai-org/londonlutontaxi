@@ -216,10 +216,7 @@ export default function VehicleSelect({ data, onNext, onBack }: Props) {
                       </div>
                     )}
                 </div>
-                <span
-                  className="vehicle-row-tick"
-                  aria-hidden={!isSelected}
-                >
+                <span className="vehicle-row-tick" aria-hidden={!isSelected}>
                   <svg
                     width="14"
                     height="14"

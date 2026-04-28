@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Polyline,
+  useMap,
+} from "react-leaflet";
 import L from "leaflet";
 import { getDriverLocation } from "../../api/bookings";
 import type { DriverLocation } from "shared/types";

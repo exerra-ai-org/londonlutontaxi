@@ -50,7 +50,14 @@ export interface BookingData {
 
 const STORAGE_KEY = "taxi.booking.draft";
 
-const STEP_LABELS = ["JOURNEY", "VEHICLE", "PRICE", "DETAILS", "COUPON", "CONFIRM"];
+const STEP_LABELS = [
+  "JOURNEY",
+  "VEHICLE",
+  "PRICE",
+  "DETAILS",
+  "COUPON",
+  "CONFIRM",
+];
 
 function loadDraft(): Partial<BookingData> | null {
   try {
@@ -262,75 +269,75 @@ export default function BookingFlow() {
         style={contentHeight ? { height: contentHeight } : undefined}
       >
         <div ref={contentRef} className="booking-flow-panel-inner">
-        <div className="mb-5">
-          <StepProgress step={step} total={6} labels={STEP_LABELS} />
-        </div>
+          <div className="mb-5">
+            <StepProgress step={step} total={6} labels={STEP_LABELS} />
+          </div>
 
-        <div
-          key={step}
-          data-step-content
-          className={
-            direction === "forward"
-              ? "animate-step-forward"
-              : "animate-step-back"
-          }
-        >
-          {step === 1 && (
-            <JourneyPanel
-              data={data}
-              activeField={activeField}
-              setActiveField={setActiveField}
-              pendingPick={pendingPick}
-              consumePendingPick={consumePendingPick}
-              onNext={(fields) => {
-                update(fields);
-                goToStep(2);
-              }}
-            />
-          )}
-          {step === 2 && (
-            <VehicleSelect
-              data={data}
-              onNext={(fields) => {
-                update(fields);
-                goToStep(3);
-              }}
-              onBack={() => goToStep(1)}
-            />
-          )}
-          {step === 3 && (
-            <PriceDisplay
-              data={data}
-              onNext={() => goToStep(4)}
-              onBack={() => goToStep(2)}
-            />
-          )}
-          {step === 4 && (
-            <CustomerDetails
-              data={data}
-              onNext={() => goToStep(5)}
-              onBack={() => goToStep(3)}
-              onUpdate={update}
-            />
-          )}
-          {step === 5 && (
-            <CouponStep
-              pricePence={data.pricePence || 0}
-              onNext={(fields) => {
-                update(fields);
-                goToStep(6);
-              }}
-              onBack={() => goToStep(4)}
-            />
-          )}
-          {step === 6 && (
-            <Confirmation
-              data={data as BookingData}
-              onBack={() => goToStep(5)}
-              onReset={reset}
-            />
-          )}
-        </div>
+          <div
+            key={step}
+            data-step-content
+            className={
+              direction === "forward"
+                ? "animate-step-forward"
+                : "animate-step-back"
+            }
+          >
+            {step === 1 && (
+              <JourneyPanel
+                data={data}
+                activeField={activeField}
+                setActiveField={setActiveField}
+                pendingPick={pendingPick}
+                consumePendingPick={consumePendingPick}
+                onNext={(fields) => {
+                  update(fields);
+                  goToStep(2);
+                }}
+              />
+            )}
+            {step === 2 && (
+              <VehicleSelect
+                data={data}
+                onNext={(fields) => {
+                  update(fields);
+                  goToStep(3);
+                }}
+                onBack={() => goToStep(1)}
+              />
+            )}
+            {step === 3 && (
+              <PriceDisplay
+                data={data}
+                onNext={() => goToStep(4)}
+                onBack={() => goToStep(2)}
+              />
+            )}
+            {step === 4 && (
+              <CustomerDetails
+                data={data}
+                onNext={() => goToStep(5)}
+                onBack={() => goToStep(3)}
+                onUpdate={update}
+              />
+            )}
+            {step === 5 && (
+              <CouponStep
+                pricePence={data.pricePence || 0}
+                onNext={(fields) => {
+                  update(fields);
+                  goToStep(6);
+                }}
+                onBack={() => goToStep(4)}
+              />
+            )}
+            {step === 6 && (
+              <Confirmation
+                data={data as BookingData}
+                onBack={() => goToStep(5)}
+                onReset={reset}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
