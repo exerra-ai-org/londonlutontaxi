@@ -1,7 +1,7 @@
 import type { BookingStatus } from "shared/types";
 import { statusLabel, statusColor } from "../lib/format";
 
-const PULSE_STATUSES: BookingStatus[] = ["en_route", "arrived"];
+const PULSE_STATUSES: BookingStatus[] = ["en_route", "arrived", "in_progress"];
 
 export default function StatusBadge({ status }: { status: BookingStatus }) {
   const pulse = PULSE_STATUSES.includes(status);

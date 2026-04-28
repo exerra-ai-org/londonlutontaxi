@@ -8,8 +8,11 @@ import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import DriverGuard from "./components/DriverGuard";
 
 import Login from "./pages/Login";
+import ResetPassword from "./pages/ResetPassword";
+import AcceptInvitation from "./pages/AcceptInvitation";
 import BookingFlow from "./pages/BookingFlow";
 import BookingHistory from "./pages/BookingHistory";
 import CustomerRideDetail from "./pages/CustomerRideDetail";
@@ -19,6 +22,8 @@ import DriverManagement from "./pages/admin/DriverManagement";
 import CouponManagement from "./pages/admin/CouponManagement";
 
 import MyRides from "./pages/driver/MyRides";
+import DriverProfile from "./pages/driver/Profile";
+import ProfilePage from "./pages/ProfilePage";
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("/sw.js").catch(() => {});
@@ -32,6 +37,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
           <Routes>
             <Route element={<Layout />}>
               <Route path="/login" element={<Login />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/accept-invitation" element={<AcceptInvitation />} />
               <Route path="/" element={<BookingFlow />} />
               <Route path="/book" element={<BookingFlow />} />
 
@@ -39,6 +46,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               <Route element={<ProtectedRoute roles={["customer"]} />}>
                 <Route path="/bookings" element={<BookingHistory />} />
                 <Route path="/bookings/:id" element={<CustomerRideDetail />} />
+                <Route path="/profile" element={<ProfilePage />} />
               </Route>
 
               {/* Admin */}
@@ -46,11 +54,15 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 <Route path="/admin" element={<RideTimeline />} />
                 <Route path="/admin/drivers" element={<DriverManagement />} />
                 <Route path="/admin/coupons" element={<CouponManagement />} />
+                <Route path="/admin/profile" element={<ProfilePage />} />
               </Route>
 
               {/* Driver */}
               <Route element={<ProtectedRoute roles={["driver"]} />}>
-                <Route path="/driver" element={<MyRides />} />
+                <Route element={<DriverGuard />}>
+                  <Route path="/driver" element={<MyRides />} />
+                  <Route path="/driver/profile" element={<DriverProfile />} />
+                </Route>
               </Route>
 
               <Route path="*" element={<Navigate to="/" replace />} />

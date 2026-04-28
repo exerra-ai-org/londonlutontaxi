@@ -11,6 +11,7 @@ import type {
 export type CustomerBooking = Booking & {
   primaryDriverName?: string | null;
   primaryDriverPhone?: string | null;
+  reviewRating?: number | null;
 };
 
 export interface BookingAssignment {
@@ -20,13 +21,32 @@ export interface BookingAssignment {
   isActive: boolean;
   assignedAt: string;
   driverName: string;
-  driverPhone: string;
+  driverPhone: string | null;
+  driverProfilePicture: string | null;
+  driverProfile: {
+    vehicleMake: string | null;
+    vehicleModel: string | null;
+    vehicleYear: number | null;
+    vehicleColor: string | null;
+    licensePlate: string | null;
+    vehicleClass: string | null;
+    bio: string | null;
+  } | null;
+  avgRating: number | null;
+  totalReviews: number;
+}
+
+export interface BookingReview {
+  rating: number;
+  comment: string | null;
+  createdAt: string;
 }
 
 export interface BookingDetail {
   booking: Booking;
   assignments: BookingAssignment[];
   vehicle?: Vehicle | null;
+  review?: BookingReview | null;
 }
 
 export interface CreateBookingInput {
@@ -100,4 +120,23 @@ export function triggerFallback(id: number) {
 
 export function getDriverLocation(id: number) {
   return api.get<DriverLocation>(`/api/bookings/${id}/driver-location`);
+}
+
+export interface Incident {
+  id: number;
+  bookingId: number;
+  type: "emergency" | "contact_admin";
+  message: string | null;
+  createdAt: string;
+}
+
+export function reportIncident(
+  id: number,
+  type: "emergency" | "contact_admin",
+  message?: string,
+) {
+  return api.post<{ incident: Incident }>(`/api/bookings/${id}/incident`, {
+    type,
+    message,
+  });
 }

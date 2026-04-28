@@ -27,6 +27,11 @@ const NEXT_STATUS: Partial<
     color: "btn-secondary",
   },
   arrived: {
+    label: "Start Ride",
+    status: "in_progress",
+    color: "btn-primary",
+  },
+  in_progress: {
     label: "Complete Ride",
     status: "completed",
     color: "btn-green",
@@ -37,6 +42,7 @@ const STATUS_BORDER: Partial<Record<BookingStatus, string>> = {
   assigned: "border-l-[var(--color-orange)]",
   en_route: "border-l-[var(--color-navy)]",
   arrived: "border-l-[var(--color-forest)]",
+  in_progress: "border-l-[var(--color-navy)]",
   completed: "border-l-[var(--color-green)]",
 };
 

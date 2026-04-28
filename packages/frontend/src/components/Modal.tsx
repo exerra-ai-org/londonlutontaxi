@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 interface Props {
   isOpen: boolean;
@@ -31,8 +32,8 @@ export default function Modal({
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in">
+  return createPortal(
+    <div className="fixed inset-0 z-[500] flex items-center justify-center animate-fade-in">
       <div
         className="absolute inset-0 bg-[rgb(19_19_19_/_0.55)] backdrop-blur-sm"
         onClick={onClose}
@@ -55,6 +56,7 @@ export default function Modal({
         )}
         <div className="p-5">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

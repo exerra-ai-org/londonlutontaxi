@@ -18,9 +18,16 @@ interface AuthContextType {
     email: string,
     credential: { password?: string; phone?: string },
   ) => Promise<AuthUser>;
-  register: (email: string, name: string, phone: string) => Promise<AuthUser>;
+  register: (
+    email: string,
+    name: string,
+    opts: { phone?: string; password?: string },
+  ) => Promise<AuthUser>;
+  requestMagicLink: (email: string) => Promise<{ message: string }>;
+  verifyMagicLink: (token: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
   signOutLocally: () => void;
+  setUserData: (user: AuthUser) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -72,18 +79,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (email: string, name: string, phone: string) => {
-      const data = await authApi.register(email, name, phone);
+    async (
+      email: string,
+      name: string,
+      opts: { phone?: string; password?: string },
+    ) => {
+      const data = await authApi.register(email, name, opts);
       setUser(data.user);
       return data.user;
     },
     [],
   );
 
+  const requestMagicLink = useCallback(
+    (email: string) => authApi.requestMagicLink(email),
+    [],
+  );
+
+  const verifyMagicLink = useCallback(async (token: string) => {
+    const data = await authApi.verifyMagicLink(token);
+    setUser(data.user);
+    return data.user;
+  }, []);
+
   const logout = useCallback(async () => {
     await authApi.logout();
     setUser(null);
   }, []);
+
+  const setUserData = useCallback((u: AuthUser) => setUser(u), []);
 
   return (
     <AuthContext.Provider
@@ -93,8 +117,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         checkEmail,
         login,
         register,
+        requestMagicLink,
+        verifyMagicLink,
         logout,
         signOutLocally,
+        setUserData,
       }}
     >
       {children}

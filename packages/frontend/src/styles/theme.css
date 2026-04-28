@@ -304,8 +304,7 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1;
-  transition:
-    box-shadow 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+  transition: box-shadow 0.4s cubic-bezier(0.2, 1, 0.3, 1);
 }
 
 .brand-link:hover .brand-mark {
@@ -1818,4 +1817,46 @@
   .metric-value {
     font-size: 56px;
   }
+}
+
+/* ── Map overlay controls (Follow / Full route) ──────────────── */
+.map-control-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--color-border-light);
+  background: rgb(255 255 255 / 0.92);
+  backdrop-filter: blur(8px);
+  color: var(--color-dark);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgb(19 19 19 / 0.12);
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+  white-space: nowrap;
+}
+
+.map-control-btn:hover {
+  background: var(--color-surface);
+  border-color: var(--color-dark);
+  transform: translateY(-1px);
+}
+
+.map-control-btn-active {
+  background: var(--color-dark);
+  color: var(--color-lime);
+  border-color: var(--color-dark);
+}
+
+.map-control-btn-active:hover {
+  background: var(--color-dark);
+  opacity: 0.85;
 }

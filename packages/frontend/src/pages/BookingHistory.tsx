@@ -2,16 +2,26 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { listBookings, cancelBooking } from "../api/bookings";
 import type { CustomerBooking } from "../api/bookings";
-import { formatPrice, formatDate, statusLabel, statusColor } from "../lib/format";
+import {
+  formatPrice,
+  formatDate,
+  statusLabel,
+  statusColor,
+} from "../lib/format";
 import { BookingCardSkeleton } from "../components/Skeleton";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { useConfirm } from "../hooks/useConfirm";
 import { useToast } from "../context/ToastContext";
-import { IconMapPin, IconCar } from "../components/icons";
+import { IconMapPin, IconCar, IconStar } from "../components/icons";
 
 type Tab = "active" | "upcoming" | "past";
 
-const ACTIVE_STATUSES = new Set(["assigned", "en_route", "arrived"]);
+const ACTIVE_STATUSES = new Set([
+  "assigned",
+  "en_route",
+  "arrived",
+  "in_progress",
+]);
 const PAST_STATUSES = new Set(["completed", "cancelled"]);
 
 export default function BookingHistory() {
@@ -177,6 +187,22 @@ export default function BookingHistory() {
                   )}
                 </div>
               )}
+
+              {b.status === "completed" &&
+                b.reviewRating != null &&
+                Number(b.reviewRating) > 0 && (
+                  <div className="mt-3 border-t border-[var(--color-border)] pt-3 flex items-center gap-1">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <IconStar
+                        key={i}
+                        className={`h-3.5 w-3.5 ${i < Number(b.reviewRating) ? "text-yellow-400" : "text-[var(--color-border)]"}`}
+                      />
+                    ))}
+                    <span className="caption-copy ml-1 text-[var(--color-muted)]">
+                      Your review
+                    </span>
+                  </div>
+                )}
 
               {(b.status === "scheduled" || b.status === "assigned") && (
                 <div className="mt-3 flex justify-end">

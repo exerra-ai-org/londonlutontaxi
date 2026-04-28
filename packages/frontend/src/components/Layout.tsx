@@ -6,6 +6,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useNotifications } from "../hooks/useNotifications";
 import {
   IconCar,
   IconCalendar,
@@ -13,6 +14,7 @@ import {
   IconTicket,
   IconGrid,
   IconLogout,
+  IconBell,
 } from "./icons";
 
 /**
@@ -27,9 +29,7 @@ function Brand() {
       <span className="brand-mark" aria-hidden="true">
         TC
       </span>
-      <span className="brand-wordmark hidden sm:inline">
-        Taxi Concierge
-      </span>
+      <span className="brand-wordmark hidden sm:inline">Taxi Concierge</span>
     </Link>
   );
 }
@@ -79,18 +79,67 @@ function DesktopNavItem({
   );
 }
 
+function profilePath(role: string) {
+  if (role === "driver") return "/driver/profile";
+  if (role === "admin") return "/admin/profile";
+  return "/profile";
+}
+
 function UserChip({ name, role }: { name: string; role: string }) {
   const initial = name.trim().charAt(0).toUpperCase() || "?";
   return (
-    <div className="user-chip" title={`${name} (${role})`}>
+    <Link to={profilePath(role)} className="user-chip" title={`${name}`}>
       <span className="user-chip-initial" aria-hidden="true">
         {initial}
       </span>
       <div className="user-chip-text">
         <div className="user-chip-name">{name}</div>
-        <div className="user-chip-role">/ {role.toUpperCase()}</div>
+        {role !== "customer" && (
+          <div className="user-chip-role">/ {role.toUpperCase()}</div>
+        )}
       </div>
-    </div>
+    </Link>
+  );
+}
+
+function NotificationBell({ userId }: { userId: number }) {
+  const {
+    supported,
+    permission,
+    subscribed,
+    loading,
+    requestAndSubscribe,
+    doUnsubscribe,
+  } = useNotifications(userId);
+
+  if (!supported) return null;
+
+  const denied = permission === "denied";
+  const title = denied
+    ? "Notifications blocked — enable in browser settings"
+    : subscribed
+      ? "Notifications on — click to turn off"
+      : "Enable push notifications";
+
+  function handleClick() {
+    if (denied || loading) return;
+    if (subscribed) doUnsubscribe();
+    else requestAndSubscribe();
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={loading || denied}
+      title={title}
+      aria-label={title}
+      className={`topbar-icon-btn relative${denied ? " opacity-40" : ""}`}
+    >
+      <IconBell className="h-4 w-4" filled={subscribed} />
+      {subscribed && (
+        <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-[var(--color-forest)]" />
+      )}
+    </button>
   );
 }
 
@@ -138,6 +187,7 @@ export default function Layout() {
                 <div className="hidden sm:block">
                   <UserChip name={user.name} role={user.role} />
                 </div>
+                <NotificationBell userId={user.id} />
                 <button
                   onClick={handleLogout}
                   title="Sign out"
@@ -178,6 +228,11 @@ export default function Layout() {
                   icon={<IconCalendar className="w-5 h-5" />}
                   label="Bookings"
                 />
+                <NavItem
+                  to="/profile"
+                  icon={<IconUser className="w-5 h-5" />}
+                  label="Account"
+                />
               </>
             )}
             {user.role === "admin" && (
@@ -200,11 +255,18 @@ export default function Layout() {
               </>
             )}
             {user.role === "driver" && (
-              <NavItem
-                to="/driver"
-                icon={<IconCar className="w-5 h-5" />}
-                label="My Rides"
-              />
+              <>
+                <NavItem
+                  to="/driver"
+                  icon={<IconCar className="w-5 h-5" />}
+                  label="My Rides"
+                />
+                <NavItem
+                  to="/driver/profile"
+                  icon={<IconUser className="w-5 h-5" />}
+                  label="Profile"
+                />
+              </>
             )}
           </div>
         </nav>

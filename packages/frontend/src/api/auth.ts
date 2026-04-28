@@ -18,6 +18,7 @@ export interface CheckEmailResponse {
   exists: boolean;
   role?: UserRole;
   name?: string;
+  hasPassword?: boolean;
 }
 
 export function checkEmail(email: string) {
@@ -34,11 +35,54 @@ export function login(
   });
 }
 
-export function register(email: string, name: string, phone: string) {
+export function register(
+  email: string,
+  name: string,
+  opts: { phone?: string; password?: string },
+) {
   return api.post<{ user: AuthUser }>("/api/auth/register", {
     email,
     name,
-    phone,
+    ...opts,
+  });
+}
+
+export function requestMagicLink(email: string) {
+  return api.post<{ message: string }>("/api/auth/magic-link", { email });
+}
+
+export function verifyMagicLink(token: string) {
+  return api.post<{ user: AuthUser }>("/api/auth/magic-link/verify", { token });
+}
+
+export function requestPasswordReset(email: string) {
+  return api.post<{ message: string }>("/api/auth/reset-password/request", {
+    email,
+  });
+}
+
+export function verifyPasswordReset(token: string, password: string) {
+  return api.post<{ user: AuthUser }>("/api/auth/reset-password/verify", {
+    token,
+    password,
+  });
+}
+
+export function acceptInvitation(token: string, password: string) {
+  return api.post<{ user: AuthUser }>("/api/auth/accept-invitation", {
+    token,
+    password,
+  });
+}
+
+export function updateProfile(data: { name?: string; phone?: string | null }) {
+  return api.patch<{ user: AuthUser }>("/api/auth/me", data);
+}
+
+export function changePassword(currentPassword: string, newPassword: string) {
+  return api.patch<{ message: string }>("/api/auth/me/password", {
+    currentPassword,
+    newPassword,
   });
 }
 

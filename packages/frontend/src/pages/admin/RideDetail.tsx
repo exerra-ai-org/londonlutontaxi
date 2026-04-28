@@ -20,7 +20,7 @@ interface Assignment {
   role: string;
   isActive: boolean;
   driverName: string;
-  driverPhone: string;
+  driverPhone: string | null;
 }
 
 interface Props {
@@ -88,7 +88,9 @@ export default function RideDetail({ bookingId, onClose, onUpdated }: Props) {
 
   const canFallback =
     booking &&
-    (booking.status === "assigned" || booking.status === "en_route") &&
+    (["assigned", "en_route", "arrived", "in_progress"] as string[]).includes(
+      booking.status,
+    ) &&
     assignments.some((a) => a.role === "primary" && a.isActive) &&
     assignments.some((a) => a.role === "backup" && a.isActive);
 
@@ -179,6 +181,14 @@ export default function RideDetail({ bookingId, onClose, onUpdated }: Props) {
                   </button>
                 )}
                 {booking.status === "arrived" && (
+                  <button
+                    onClick={() => handleStatusChange("in_progress")}
+                    className="btn-primary button-text-compact"
+                  >
+                    Start Ride
+                  </button>
+                )}
+                {booking.status === "in_progress" && (
                   <button
                     onClick={() => handleStatusChange("completed")}
                     className="btn-green button-text-compact"

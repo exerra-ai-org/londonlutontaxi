@@ -1,17 +1,82 @@
 import { api } from "./client";
+
+export async function uploadProfilePicture(file: File): Promise<string> {
+  const form = new FormData();
+  form.append("file", file);
+  const res = await fetch("/api/upload/profile-picture", {
+    method: "POST",
+    credentials: "include",
+    body: form,
+  });
+  const json = await res.json();
+  if (!res.ok || !json.success) throw new Error(json.error || "Upload failed");
+  return json.data.url as string;
+}
 import type { DriverHeartbeat } from "shared/types";
 
 export interface AdminDriverRow {
   id: number;
   email: string;
   name: string;
-  phone: string;
+  phone: string | null;
   createdAt: string;
   upcomingAssignments: number;
+  profile: {
+    vehicleMake: string | null;
+    vehicleModel: string | null;
+    vehicleYear: number | null;
+    vehicleColor: string | null;
+    licensePlate: string | null;
+    vehicleClass: string | null;
+    bio: string | null;
+  } | null;
+  avgRating: number | null;
+  totalReviews: number;
 }
 
 export function listDrivers() {
   return api.get<{ drivers: AdminDriverRow[] }>("/api/drivers");
+}
+
+export function inviteDriver(
+  email: string,
+  name: string,
+  role: "driver" | "admin",
+) {
+  return api.post<{
+    user: { id: number; email: string; name: string; role: string };
+  }>("/api/admin/invite", { email, name, role });
+}
+
+export interface DriverSelfProfile {
+  id: number;
+  email: string;
+  name: string;
+  phone: string | null;
+  profilePictureUrl: string | null;
+  profile: AdminDriverRow["profile"];
+  avgRating: number | null;
+  totalReviews: number;
+}
+
+export function getMyProfile() {
+  return api.get<{ driver: DriverSelfProfile }>("/api/drivers/me/profile");
+}
+
+export function updateMyProfile(data: {
+  profilePictureUrl?: string;
+  vehicleMake?: string;
+  vehicleModel?: string;
+  vehicleYear?: number;
+  vehicleColor?: string;
+  licensePlate?: string;
+  vehicleClass?: "regular" | "comfort" | "max";
+  bio?: string;
+}) {
+  return api.put<{
+    profile: AdminDriverRow["profile"];
+    profilePictureUrl: string | null;
+  }>("/api/drivers/me/profile", data);
 }
 
 export function sendHeartbeat(input: {

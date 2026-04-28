@@ -10,10 +10,6 @@ import type { BookingData } from "../BookingFlow";
 // for anything this misses.
 const AIRPORT_HINTS = [
   "airport",
-  "heathrow",
-  "gatwick",
-  "stansted",
-  "luton",
   "city airport",
   "lcy",
   "lhr",
@@ -35,7 +31,12 @@ interface Props {
   data: Partial<BookingData>;
   activeField: ActiveField;
   setActiveField: (f: ActiveField) => void;
-  pendingPick: { field: ActiveField; lat: number; lon: number; address: string } | null;
+  pendingPick: {
+    field: ActiveField;
+    lat: number;
+    lon: number;
+    address: string;
+  } | null;
   consumePendingPick: () => void;
   onNext: (fields: Partial<BookingData>) => void;
 }
@@ -49,8 +50,12 @@ export default function JourneyPanel({
   onNext,
 }: Props) {
   const [pickup, setPickup] = useState(data.pickupAddress || "");
-  const [pickupLat, setPickupLat] = useState<number | undefined>(data.pickupLat);
-  const [pickupLon, setPickupLon] = useState<number | undefined>(data.pickupLon);
+  const [pickupLat, setPickupLat] = useState<number | undefined>(
+    data.pickupLat,
+  );
+  const [pickupLon, setPickupLon] = useState<number | undefined>(
+    data.pickupLon,
+  );
   const [dropoff, setDropoff] = useState(data.dropoffAddress || "");
   const [dropoffLat, setDropoffLat] = useState<number | undefined>(
     data.dropoffLat,
@@ -98,7 +103,9 @@ export default function JourneyPanel({
       dropoffLon,
       date,
       time,
-      pickupFlightNumber: pickupIsAirport ? pickupFlight || undefined : undefined,
+      pickupFlightNumber: pickupIsAirport
+        ? pickupFlight || undefined
+        : undefined,
       dropoffFlightNumber: dropoffIsAirport
         ? dropoffFlight || undefined
         : undefined,
@@ -203,7 +210,9 @@ export default function JourneyPanel({
             <input
               type="text"
               value={dropoffFlight}
-              onChange={(e) => setDropoffFlight(normaliseFlight(e.target.value))}
+              onChange={(e) =>
+                setDropoffFlight(normaliseFlight(e.target.value))
+              }
               placeholder="BA245"
               maxLength={10}
               autoCapitalize="characters"

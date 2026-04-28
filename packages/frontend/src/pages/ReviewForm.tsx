@@ -24,10 +24,14 @@ export default function ReviewForm({ bookingId, onClose }: Props) {
     setRating(0);
     setComment("");
     setError("");
-    // Fetch booking to get driver ID
+    // Fetch booking to get driver ID — check active primary first, then any primary
     getBooking(bookingId).then((data) => {
-      const activeDriver = data.assignments.find((a) => a.isActive);
-      if (activeDriver) setDriverId(activeDriver.driverId);
+      const driver =
+        data.assignments.find((a) => a.role === "primary" && a.isActive) ??
+        data.assignments.find((a) => a.role === "primary") ??
+        data.assignments.find((a) => a.isActive) ??
+        data.assignments[0];
+      if (driver) setDriverId(driver.driverId);
     });
   }, [bookingId]);
 
@@ -46,6 +50,11 @@ export default function ReviewForm({ bookingId, onClose }: Props) {
       toast.success("Review submitted — thank you!");
       onClose();
     } catch (err) {
+      if (err instanceof ApiError && err.status === 409) {
+        toast.info("You have already reviewed this booking");
+        onClose();
+        return;
+      }
       setError(err instanceof ApiError ? err.message : "Failed to submit");
     } finally {
       setLoading(false);

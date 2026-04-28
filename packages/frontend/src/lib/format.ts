@@ -21,6 +21,7 @@ export function statusLabel(status: BookingStatus): string {
     assigned: "Assigned",
     en_route: "En Route",
     arrived: "Arrived",
+    in_progress: "In Progress",
     completed: "Completed",
     cancelled: "Cancelled",
   };
@@ -33,6 +34,7 @@ export function statusColor(status: BookingStatus): string {
     assigned: "status-assigned",
     en_route: "status-en-route",
     arrived: "status-arrived",
+    in_progress: "status-en-route",
     completed: "status-completed",
     cancelled: "status-cancelled",
   };

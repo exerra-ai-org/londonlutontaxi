@@ -64,6 +64,7 @@ interface ControllerProps {
   activeField: ActiveField;
   obstruct: ObstructPadding;
   onMapClick?: (lat: number, lng: number) => void;
+  fitTrigger?: number;
 }
 
 function Controller({
@@ -72,19 +73,19 @@ function Controller({
   activeField,
   obstruct,
   onMapClick,
+  fitTrigger = 0,
 }: ControllerProps) {
   const map = useMap();
   const lastFitKey = useRef<string>("");
 
-  // Fit bounds ONCE per unique pickup+dropoff pair. Padding reserves space for
-  // the floating panel so the route never slides under it. Re-fits don't fire
-  // on driver-location polls, panel resizes, or step transitions.
+  // Fit bounds once per unique pickup+dropoff pair, or whenever fitTrigger
+  // changes (allows the parent to force a re-fit, e.g. "show full route").
   useEffect(() => {
     if (!pickup || !dropoff) {
       lastFitKey.current = "";
       return;
     }
-    const key = `${pickup.lat},${pickup.lon}|${dropoff.lat},${dropoff.lon}`;
+    const key = `${pickup.lat},${pickup.lon}|${dropoff.lat},${dropoff.lon}|${fitTrigger}`;
     if (key === lastFitKey.current) return;
     lastFitKey.current = key;
     const bounds = L.latLngBounds(
@@ -100,10 +101,8 @@ function Controller({
       paddingBottomRight: [right, bottom],
       maxZoom: 14,
     });
-    // obstruct intentionally read but not in deps — only its value at fit
-    // time matters, never to trigger a re-fit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, pickup?.lat, pickup?.lon, dropoff?.lat, dropoff?.lon]);
+  }, [map, pickup?.lat, pickup?.lon, dropoff?.lat, dropoff?.lon, fitTrigger]);
 
   // Cursor when picking
   useEffect(() => {
@@ -123,6 +122,20 @@ function Controller({
   return null;
 }
 
+// Smoothly pans to the driver position whenever it changes.
+// Used during en_route to keep the driver marker visible.
+function DriverFollower({ driver }: { driver: Coords }) {
+  const map = useMap();
+  const prevRef = useRef<string>("");
+  useEffect(() => {
+    const key = `${driver.lat},${driver.lon}`;
+    if (key === prevRef.current) return;
+    prevRef.current = key;
+    map.panTo([driver.lat, driver.lon], { animate: true, duration: 1.2 });
+  }, [map, driver.lat, driver.lon]);
+  return null;
+}
+
 interface MapBackdropProps {
   pickup: Coords | null;
   dropoff: Coords | null;
@@ -131,13 +144,13 @@ interface MapBackdropProps {
   onMapClick?: (lat: number, lng: number) => void;
   onPickupDrag?: (c: Coords) => void;
   onDropoffDrag?: (c: Coords) => void;
-  /**
-   * Pixel padding to reserve around the fitted bounds for floating chrome
-   * (e.g. side panel, bottom sheet). Right is for desktop side-anchored
-   * panels; bottom is for mobile bottom sheets.
-   */
+  /** Pixel padding for floating chrome (side panel / bottom sheet). */
   obstruct?: ObstructPadding;
   interactive?: boolean;
+  /** When true, map pans to follow the driver marker as it updates. */
+  followDriver?: boolean;
+  /** Increment to force a re-fit of pickup+dropoff bounds. */
+  fitTrigger?: number;
 }
 
 export default function MapBackdrop({
@@ -150,6 +163,8 @@ export default function MapBackdrop({
   onDropoffDrag,
   obstruct = {},
   interactive = true,
+  followDriver = false,
+  fitTrigger = 0,
 }: MapBackdropProps) {
   const [route, setRoute] = useState<L.LatLngExpression[]>([]);
 
@@ -215,7 +230,9 @@ export default function MapBackdrop({
           activeField={activeField}
           obstruct={obstruct}
           onMapClick={handleMapClickWrapped}
+          fitTrigger={fitTrigger}
         />
+        {followDriver && driver && <DriverFollower driver={driver} />}
         {pickup && (
           <Marker
             position={[pickup.lat, pickup.lon]}

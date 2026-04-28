@@ -1,8 +1,33 @@
 import { useEffect, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
 import type { Booking } from "shared/types";
 import { listBookings } from "../../api/bookings";
 import RideCard from "./RideCard";
 import { SkeletonCard } from "../../components/Skeleton";
+import {
+  useDriverHeartbeat,
+  type GpsStatus,
+} from "../../hooks/useDriverHeartbeat";
+import { IconGps } from "../../components/icons";
+
+const GPS_LABEL: Record<GpsStatus, string> = {
+  idle: "",
+  acquiring: "Acquiring GPS…",
+  active: "GPS active — sending location",
+  "no-gps": "No GPS — sending heartbeat only",
+  denied: "Location denied — sending heartbeat only",
+};
+
+// Priority order for GPS tracking: in_progress > en_route > arrived > assigned
+function pickTrackingBooking(active: Booking[]): Booking | null {
+  return (
+    active.find((b) => b.status === "in_progress") ??
+    active.find((b) => b.status === "en_route") ??
+    active.find((b) => b.status === "arrived") ??
+    active.find((b) => b.status === "assigned") ??
+    null
+  );
+}
 
 export default function MyRides() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -25,6 +50,19 @@ export default function MyRides() {
     return () => clearInterval(interval);
   }, [fetchBookings]);
 
+  const active = bookings.filter(
+    (b) => !["completed", "cancelled"].includes(b.status),
+  );
+  const past = bookings.filter((b) =>
+    ["completed", "cancelled"].includes(b.status),
+  );
+
+  const trackingBooking = pickTrackingBooking(active);
+  const { gpsStatus } = useDriverHeartbeat(
+    trackingBooking?.id ?? null,
+    trackingBooking?.status ?? null,
+  );
+
   if (loading) {
     return (
       <div className="space-y-2">
@@ -35,12 +73,13 @@ export default function MyRides() {
     );
   }
 
-  const active = bookings.filter(
-    (b) => !["completed", "cancelled"].includes(b.status),
-  );
-  const past = bookings.filter((b) =>
-    ["completed", "cancelled"].includes(b.status),
-  );
+  const gpsLabel = GPS_LABEL[gpsStatus];
+  const gpsColor =
+    gpsStatus === "active"
+      ? "text-[var(--color-forest)]"
+      : gpsStatus === "acquiring"
+        ? "text-[var(--color-orange)]"
+        : "text-[var(--color-muted)]";
 
   return (
     <div className="page-stack">
@@ -49,13 +88,31 @@ export default function MyRides() {
           <p className="section-label">Driver</p>
           <h1 className="page-title mt-4 text-[40px]">My rides</h1>
         </div>
-        <button
-          onClick={fetchBookings}
-          className="btn-secondary button-text-compact"
-        >
-          Refresh
-        </button>
+        <div className="flex gap-2">
+          <Link
+            to="/driver/profile"
+            className="btn-secondary button-text-compact"
+          >
+            Profile
+          </Link>
+          <button
+            onClick={fetchBookings}
+            className="btn-secondary button-text-compact"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
+
+      {gpsStatus !== "idle" && gpsLabel && (
+        <div className={`flex items-center gap-2 caption-copy ${gpsColor}`}>
+          <IconGps className="h-3.5 w-3.5 shrink-0" />
+          <span>{gpsLabel}</span>
+          {gpsStatus === "active" && (
+            <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
+          )}
+        </div>
+      )}
 
       {active.length > 0 && (
         <div className="space-y-2 mb-6">
