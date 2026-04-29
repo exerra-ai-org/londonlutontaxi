@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "bunx vite",
     "build": "bunx vite build",
-    "preview": "bunx vite preview"
+    "preview": "bunx vite preview",
+    "lint": "bunx prettier --check .",
+    "type-check": "bunx tsc --noEmit"
   },
   "dependencies": {
     "leaflet": "^1.9.4",

@@ -2,11 +2,11 @@ import { api } from "./client";
 import type { FixedRoute } from "shared/types";
 
 export function listFixedRoutes() {
-  return api.get<{ routes: FixedRoute[] }>("/api/fixed-routes");
+  return api.get<{ routes: FixedRoute[] }>("/fixed-routes");
 }
 
 export function getFixedRoute(id: number) {
-  return api.get<{ route: FixedRoute }>(`/api/fixed-routes/${id}`);
+  return api.get<{ route: FixedRoute }>(`/fixed-routes/${id}`);
 }
 
 export interface FixedRouteInput {
@@ -18,13 +18,13 @@ export interface FixedRouteInput {
 }
 
 export function createFixedRoute(input: FixedRouteInput) {
-  return api.post<{ route: FixedRoute }>("/api/fixed-routes", input);
+  return api.post<{ route: FixedRoute }>("/fixed-routes", input);
 }
 
 export function updateFixedRoute(id: number, input: Partial<FixedRouteInput>) {
-  return api.patch<{ route: FixedRoute }>(`/api/fixed-routes/${id}`, input);
+  return api.patch<{ route: FixedRoute }>(`/fixed-routes/${id}`, input);
 }
 
 export function deleteFixedRoute(id: number) {
-  return api.delete<{ route: FixedRoute }>(`/api/fixed-routes/${id}`);
+  return api.delete<{ route: FixedRoute }>(`/fixed-routes/${id}`);
 }

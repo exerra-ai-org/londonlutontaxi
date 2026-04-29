@@ -1,0 +1,162 @@
+name: Frontend CI & Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/frontend/**"
+      - "packages/shared/**"
+      - "bun.lock"
+      - "package.json"
+      - ".github/workflows/frontend.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "packages/frontend/**"
+      - "packages/shared/**"
+      - "bun.lock"
+      - "package.json"
+      - ".github/workflows/frontend.yml"
+
+# Required secrets:
+#   CLOUDFLARE_API_TOKEN  — Cloudflare API token with Pages:Edit permission
+#   CLOUDFLARE_ACCOUNT_ID — Cloudflare account ID
+# Optional secret:
+#   GH_ADMIN_TOKEN — PAT with `repo` admin scope, used to set the repository
+#                    homepage URL to the latest production deploy URL
+
+env:
+  CLOUDFLARE_PROJECT_NAME: londonlutontaxi
+
+jobs:
+  ci:
+    name: Lint, Type-check & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: bun-${{ runner.os }}-${{ hashFiles('bun.lock') }}
+          restore-keys: bun-${{ runner.os }}-
+
+      - run: bun install --frozen-lockfile
+
+      - name: Cache Vite build
+        uses: actions/cache@v4
+        with:
+          path: packages/frontend/node_modules/.vite
+          key: vite-${{ runner.os }}-${{ hashFiles('bun.lock') }}-${{ hashFiles('packages/frontend/src/**', 'packages/frontend/public/**', 'packages/shared/src/**') }}
+          restore-keys: |
+            vite-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
+            vite-${{ runner.os }}-
+
+      - run: bun run --filter frontend lint
+      - run: bun run --filter frontend type-check
+      - run: bun run --filter frontend build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: packages/frontend/dist
+          retention-days: 1
+
+  deploy:
+    name: Deploy to Cloudflare Pages
+    needs: ci
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: packages/frontend/dist
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        id: deploy
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy packages/frontend/dist --project-name=${{ env.CLOUDFLARE_PROJECT_NAME }} --branch=main --commit-dirty=true
+
+      - name: Set repository homepage to deployment URL
+        env:
+          GH_TOKEN: ${{ secrets.GH_ADMIN_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::GH_ADMIN_TOKEN not set — skipping homepage update. Add a PAT with admin scope as a repo secret to enable this."
+            exit 0
+          fi
+          DEPLOY_URL="${{ steps.deploy.outputs.deployment-url }}"
+          PAGES_URL="https://${{ env.CLOUDFLARE_PROJECT_NAME }}.pages.dev"
+          HOMEPAGE="${DEPLOY_URL:-$PAGES_URL}"
+          gh repo edit --homepage "$HOMEPAGE"
+
+  deploy-preview:
+    name: Deploy Preview
+    needs: ci
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: packages/frontend/dist
+
+      - name: Deploy preview
+        uses: cloudflare/wrangler-action@v3
+        id: deploy
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy packages/frontend/dist --project-name=${{ env.CLOUDFLARE_PROJECT_NAME }} --branch=${{ github.head_ref }} --commit-dirty=true
+
+      - name: Comment preview URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = `${{ steps.deploy.outputs.deployment-url }}`;
+            const marker = '<!-- cf-pages-preview -->';
+            const body = `${marker}\nPreview deployed to: ${url}`;
+            const { data: comments } = await github.rest.issues.listComments({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            const existing = comments.find(c => c.body && c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                comment_id: existing.id,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body,
+              });
+            }

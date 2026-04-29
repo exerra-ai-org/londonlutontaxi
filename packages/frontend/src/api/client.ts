@@ -8,7 +8,8 @@ export class ApiError extends Error {
   }
 }
 
-const BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+export const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const BASE = API_BASE;
 
 let unauthorizedHandler: (() => void) | null = null;
 
@@ -49,7 +50,7 @@ async function request<T>(
     if (
       res.status === 401 &&
       unauthorizedHandler &&
-      !path.startsWith("/api/auth/")
+      !path.startsWith("/auth/")
     ) {
       unauthorizedHandler();
     }

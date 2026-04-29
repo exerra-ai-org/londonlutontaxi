@@ -10,11 +10,11 @@ export interface CouponValidation {
 }
 
 export function validateCoupon(code: string) {
-  return api.post<CouponValidation>("/api/coupons/validate", { code });
+  return api.post<CouponValidation>("/coupons/validate", { code });
 }
 
 export function listCoupons() {
-  return api.get<{ coupons: Coupon[] }>("/api/coupons");
+  return api.get<{ coupons: Coupon[] }>("/coupons");
 }
 
 export interface CreateCouponInput {
@@ -26,5 +26,5 @@ export interface CreateCouponInput {
 }
 
 export function createCoupon(input: CreateCouponInput) {
-  return api.post<{ coupon: Coupon }>("/api/coupons", input);
+  return api.post<{ coupon: Coupon }>("/coupons", input);
 }

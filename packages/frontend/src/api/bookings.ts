@@ -7,7 +7,7 @@ import type {
   VehicleClass,
 } from "shared/types";
 
-// Customer-scope GET /api/bookings adds these fields per backend spec.
+// Customer-scope GET /bookings adds these fields per backend spec.
 export type CustomerBooking = Booking & {
   primaryDriverName?: string | null;
   primaryDriverPhone?: string | null;
@@ -64,15 +64,15 @@ export interface CreateBookingInput {
 }
 
 export function createBooking(input: CreateBookingInput) {
-  return api.post<{ booking: Booking }>("/api/bookings", input);
+  return api.post<{ booking: Booking }>("/bookings", input);
 }
 
 export function listBookings() {
-  return api.get<{ bookings: CustomerBooking[] }>("/api/bookings");
+  return api.get<{ bookings: CustomerBooking[] }>("/bookings");
 }
 
 export function getBooking(id: number) {
-  return api.get<BookingDetail>(`/api/bookings/${id}`);
+  return api.get<BookingDetail>(`/bookings/${id}`);
 }
 
 export interface UpdateBookingInput {
@@ -88,17 +88,17 @@ export interface UpdateBookingInput {
 }
 
 export function updateBooking(id: number, input: UpdateBookingInput) {
-  return api.patch<{ booking: Booking }>(`/api/bookings/${id}`, input);
+  return api.patch<{ booking: Booking }>(`/bookings/${id}`, input);
 }
 
 export function updateBookingStatus(id: number, status: BookingStatus) {
-  return api.patch<{ booking: Booking }>(`/api/bookings/${id}/status`, {
+  return api.patch<{ booking: Booking }>(`/bookings/${id}/status`, {
     status,
   });
 }
 
 export function cancelBooking(id: number) {
-  return api.patch<{ booking: Booking }>(`/api/bookings/${id}/cancel`);
+  return api.patch<{ booking: Booking }>(`/bookings/${id}/cancel`);
 }
 
 export function assignDrivers(
@@ -107,19 +107,19 @@ export function assignDrivers(
   backupDriverId: number,
 ) {
   return api.post<{ booking: Booking; assignments: BookingAssignment[] }>(
-    `/api/bookings/${id}/assign`,
+    `/bookings/${id}/assign`,
     { primaryDriverId, backupDriverId },
   );
 }
 
 export function triggerFallback(id: number) {
   return api.post<{ message: string; assignments: BookingAssignment[] }>(
-    `/api/bookings/${id}/fallback`,
+    `/bookings/${id}/fallback`,
   );
 }
 
 export function getDriverLocation(id: number) {
-  return api.get<DriverLocation>(`/api/bookings/${id}/driver-location`);
+  return api.get<DriverLocation>(`/bookings/${id}/driver-location`);
 }
 
 export interface Incident {
@@ -135,7 +135,7 @@ export function reportIncident(
   type: "emergency" | "contact_admin",
   message?: string,
 ) {
-  return api.post<{ incident: Incident }>(`/api/bookings/${id}/incident`, {
+  return api.post<{ incident: Incident }>(`/bookings/${id}/incident`, {
     type,
     message,
   });

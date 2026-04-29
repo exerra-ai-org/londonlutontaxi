@@ -61,7 +61,7 @@ export default function RideCard({ booking, onStatusUpdate }: Props) {
     if (!ok) return;
     setLoading(true);
     try {
-      await api.patch(`/api/bookings/${booking.id}/status`, {
+      await api.patch(`/bookings/${booking.id}/status`, {
         status: next.status,
       });
       toast.success(`Ride set to ${next.label}`);

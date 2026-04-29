@@ -26,11 +26,9 @@ function buildQuery(params: QuoteParams): string {
 }
 
 export function getQuote(params: QuoteParams) {
-  return api.get<PricingQuote>(`/api/pricing/quote?${buildQuery(params)}`);
+  return api.get<PricingQuote>(`/pricing/quote?${buildQuery(params)}`);
 }
 
 export function getQuoteAll(params: Omit<QuoteParams, "vehicleClass">) {
-  return api.get<PricingQuoteMulti>(
-    `/api/pricing/quote-all?${buildQuery(params)}`,
-  );
+  return api.get<PricingQuoteMulti>(`/pricing/quote-all?${buildQuery(params)}`);
 }

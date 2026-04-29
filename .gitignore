@@ -4,9 +4,13 @@ dist/
 bun.lockb
 *.log
 
+# Secrets — ignore all .env files everywhere by default.
+# Allow only specific safe files via path-scoped exceptions below.
 .env
 .env.*
-!.env.example
+!packages/frontend/.env.example
+!packages/frontend/.env.production
+!packages/backend/.env.example
 
 .DS_Store
 

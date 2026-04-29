@@ -1,9 +1,9 @@
-import { api } from "./client";
+import { api, API_BASE } from "./client";
 
 export async function uploadProfilePicture(file: File): Promise<string> {
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch("/api/upload/profile-picture", {
+  const res = await fetch(`${API_BASE}/upload/profile-picture`, {
     method: "POST",
     credentials: "include",
     body: form,
@@ -35,7 +35,7 @@ export interface AdminDriverRow {
 }
 
 export function listDrivers() {
-  return api.get<{ drivers: AdminDriverRow[] }>("/api/drivers");
+  return api.get<{ drivers: AdminDriverRow[] }>("/drivers");
 }
 
 export function inviteDriver(
@@ -45,7 +45,7 @@ export function inviteDriver(
 ) {
   return api.post<{
     user: { id: number; email: string; name: string; role: string };
-  }>("/api/admin/invite", { email, name, role });
+  }>("/admin/invite", { email, name, role });
 }
 
 export interface DriverSelfProfile {
@@ -60,7 +60,7 @@ export interface DriverSelfProfile {
 }
 
 export function getMyProfile() {
-  return api.get<{ driver: DriverSelfProfile }>("/api/drivers/me/profile");
+  return api.get<{ driver: DriverSelfProfile }>("/drivers/me/profile");
 }
 
 export function updateMyProfile(data: {
@@ -76,7 +76,7 @@ export function updateMyProfile(data: {
   return api.put<{
     profile: AdminDriverRow["profile"];
     profilePictureUrl: string | null;
-  }>("/api/drivers/me/profile", data);
+  }>("/drivers/me/profile", data);
 }
 
 export function sendHeartbeat(input: {
@@ -84,10 +84,7 @@ export function sendHeartbeat(input: {
   lat?: number;
   lon?: number;
 }) {
-  return api.post<{ heartbeat: DriverHeartbeat }>(
-    "/api/drivers/heartbeat",
-    input,
-  );
+  return api.post<{ heartbeat: DriverHeartbeat }>("/drivers/heartbeat", input);
 }
 
 export interface WatchdogResult {
@@ -98,5 +95,5 @@ export interface WatchdogResult {
 }
 
 export function runWatchdog() {
-  return api.post<WatchdogResult>("/api/drivers/watchdog");
+  return api.post<WatchdogResult>("/drivers/watchdog");
 }

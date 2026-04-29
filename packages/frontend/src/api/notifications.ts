@@ -1,7 +1,7 @@
 import { api } from "./client";
 
 export function getPublicKey() {
-  return api.get<{ publicKey: string }>("/api/notifications/public-key");
+  return api.get<{ publicKey: string }>("/notifications/public-key");
 }
 
 export interface PushSubscriptionRow {
@@ -12,7 +12,7 @@ export interface PushSubscriptionRow {
 
 export function listSubscriptions() {
   return api.get<{ subscriptions: PushSubscriptionRow[] }>(
-    "/api/notifications/subscriptions",
+    "/notifications/subscriptions",
   );
 }
 
@@ -22,13 +22,13 @@ export function subscribe(input: {
   auth: string;
 }) {
   return api.post<{ subscription: PushSubscriptionRow }>(
-    "/api/notifications/subscribe",
+    "/notifications/subscribe",
     input,
   );
 }
 
 export function unsubscribe(endpoint: string) {
-  return api.post<{ message: string }>("/api/notifications/unsubscribe", {
+  return api.post<{ message: string }>("/notifications/unsubscribe", {
     endpoint,
   });
 }

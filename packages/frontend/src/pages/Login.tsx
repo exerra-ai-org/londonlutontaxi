@@ -327,7 +327,7 @@ export default function Login() {
                       type="button"
                       className="subtle-link text-sm"
                       disabled={busy}
-                      onClick={() => handleSendMagicLink("login")}
+                      onClick={() => handleSendMagicLink()}
                     >
                       Use email link instead
                     </button>

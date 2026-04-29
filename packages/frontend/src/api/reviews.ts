@@ -6,5 +6,5 @@ export async function createReview(data: {
   rating: number;
   comment?: string;
 }) {
-  return api.post("/api/reviews", data);
+  return api.post("/reviews", data);
 }
