@@ -22,7 +22,7 @@ interface AuthContextType {
     email: string,
     name: string,
     opts: { phone?: string; password?: string },
-  ) => Promise<AuthUser>;
+  ) => Promise<AuthUser | { magicLinkSent: true }>;
   requestMagicLink: (email: string) => Promise<{ message: string }>;
   verifyMagicLink: (token: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
@@ -85,8 +85,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       opts: { phone?: string; password?: string },
     ) => {
       const data = await authApi.register(email, name, opts);
-      setUser(data.user);
-      return data.user;
+      if ("user" in data) {
+        setUser(data.user);
+        return data.user;
+      }
+      return data;
     },
     [],
   );

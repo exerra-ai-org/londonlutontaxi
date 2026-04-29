@@ -117,10 +117,15 @@ export default function Login() {
       } else if (mode.kind === "customer-login") {
         signed = await login(email, { password });
       } else if (mode.kind === "register") {
-        signed = await register(email, name, {
+        const result = await register(email, name, {
           phone: phone || undefined,
           password: registerMethod === "password" ? password : undefined,
         });
+        if ("magicLinkSent" in result) {
+          setMode({ kind: "magic-link-sent" });
+          return;
+        }
+        signed = result;
       } else {
         return;
       }

@@ -184,6 +184,21 @@ authRoutes.post("/register", async (c) => {
     .values({ email, name, phone, role: "customer", passwordHash })
     .returning();
 
+  // Magic-link registration: send verification email instead of issuing cookie
+  if (!password) {
+    const token = crypto.randomUUID() + "-" + crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await db
+      .update(users)
+      .set({ magicLinkToken: token, magicLinkExpiresAt: expiresAt })
+      .where(eq(users.id, user.id));
+
+    await sendMagicLinkEmail(email, token, name);
+
+    return ok(c, { magicLinkSent: true });
+  }
+
   await issueAuthCookie(c, user);
 
   return ok(c, {
