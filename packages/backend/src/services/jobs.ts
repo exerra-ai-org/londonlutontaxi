@@ -1,12 +1,9 @@
 import { runDriverWatchdog } from "./driverWatchdog";
 import { notifyWatchdogResult, processDueRideReminders } from "./notifications";
+import { config } from "../config";
 
-const BACKGROUND_JOBS_ENABLED =
-  String(process.env.BACKGROUND_JOBS_ENABLED || "true") !== "false";
-const BACKGROUND_JOBS_TICK_SECONDS = Math.max(
-  30,
-  Number(process.env.BACKGROUND_JOBS_TICK_SECONDS || "60"),
-);
+const BACKGROUND_JOBS_ENABLED = config.jobs.enabled;
+const BACKGROUND_JOBS_TICK_SECONDS = config.jobs.tickSeconds;
 
 let started = false;
 let isTickRunning = false;
@@ -58,6 +55,6 @@ export function startBackgroundJobs(): void {
   }
 
   console.log(
-    `Background jobs started: tick=${BACKGROUND_JOBS_TICK_SECONDS}s, reminders=${process.env.RIDE_REMINDER_MINUTES || "120,60,15"}`,
+    `Background jobs started: tick=${BACKGROUND_JOBS_TICK_SECONDS}s, reminders=${config.jobs.rideReminderMinutes.join(",")}`,
   );
 }

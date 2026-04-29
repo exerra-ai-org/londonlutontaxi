@@ -1,15 +1,10 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { db } from "../db/index";
 import { bookings, driverAssignments, driverHeartbeats } from "../db/schema";
+import { config } from "../config";
 
-const HEARTBEAT_STALE_MINUTES = Math.max(
-  1,
-  Number(process.env.DRIVER_HEARTBEAT_STALE_MINUTES || "5"),
-);
-const HEARTBEAT_FALLBACK_WINDOWS = Math.max(
-  1,
-  Number(process.env.DRIVER_HEARTBEAT_FALLBACK_WINDOWS || "2"),
-);
+const HEARTBEAT_STALE_MINUTES = config.drivers.heartbeatStaleMinutes;
+const HEARTBEAT_FALLBACK_WINDOWS = config.drivers.heartbeatFallbackWindows;
 
 export interface DriverWatchdogWarning {
   bookingId: number;

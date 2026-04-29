@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { sign } from "hono/jwt";
 import { setCookie, deleteCookie } from "hono/cookie";
+import { config } from "../config";
 import { eq, sql } from "drizzle-orm";
 import {
   loginSchema,
@@ -38,7 +39,7 @@ function normalizePhone(phone: string): string {
 function setAuthCookie(c: Parameters<typeof setCookie>[0], token: string) {
   setCookie(c, JWT_COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: config.isProduction,
     sameSite: "Lax",
     path: "/",
     maxAge: JWT_EXPIRES_IN_SECONDS,

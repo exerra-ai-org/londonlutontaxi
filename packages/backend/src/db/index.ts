@@ -1,12 +1,9 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import * as schema from "./schema";
+import { config } from "../config";
 
-const connectionString =
-  process.env.DATABASE_URL ||
-  "postgresql://postgres:postgres@localhost:5432/taxi";
-
-const client = postgres(connectionString, {
+const client = postgres(config.database.url, {
   ssl: { rejectUnauthorized: false },
 });
 

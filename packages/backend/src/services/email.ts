@@ -1,13 +1,13 @@
 import { Resend } from "resend";
+import { config } from "../config";
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const APP_NAME = process.env.APP_NAME || "Taxi Concierge";
-const APP_BASE_URL = (
-  process.env.APP_BASE_URL || "http://localhost:5173"
-).replace(/\/$/, "");
-const EMAIL_FROM = process.env.EMAIL_FROM || `${APP_NAME} <noreply@taxi.local>`;
+const APP_NAME = config.app.name;
+const APP_BASE_URL = config.app.baseUrl;
+const EMAIL_FROM = config.email.from || `${APP_NAME} <noreply@taxi.local>`;
 
-const resend = RESEND_API_KEY ? new Resend(RESEND_API_KEY) : null;
+const resend = config.email.resendApiKey
+  ? new Resend(config.email.resendApiKey)
+  : null;
 
 // ── Design tokens (matched to frontend theme.css) ─────────────────────────────
 const t = {

@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { join } from "path";
+import { config } from "./config";
 import { authRoutes } from "./routes/auth";
 import { pricingRoutes } from "./routes/pricing";
 import { bookingRoutes } from "./routes/bookings";
@@ -20,12 +21,10 @@ const app = new Hono();
 
 app.use("*", logger());
 
-const CORS_ORIGIN = process.env.CORS_ORIGIN || "http://localhost:5173";
-
 app.use(
   "/*",
   cors({
-    origin: CORS_ORIGIN.split(",").map((s) => s.trim()),
+    origin: config.cors.origins,
     credentials: true,
   }),
 );
@@ -77,6 +76,6 @@ app.get("/uploads/:filename", async (c) => {
 startBackgroundJobs();
 
 export default {
-  port: Number(process.env.PORT) || 3000,
+  port: config.server.port,
   fetch: app.fetch,
 };

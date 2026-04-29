@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { join } from "path";
+import { config } from "../config";
 import { authMiddleware } from "../middleware/auth";
 import { ok, err } from "../lib/response";
 
@@ -36,8 +37,5 @@ uploadRoutes.post("/profile-picture", authMiddleware, async (c) => {
 
   await Bun.write(dest, file);
 
-  const baseUrl = (
-    process.env.APP_BASE_URL_BACKEND || "http://localhost:3000"
-  ).replace(/\/$/, "");
-  return ok(c, { url: `${baseUrl}/uploads/${filename}` });
+  return ok(c, { url: `${config.app.selfUrl}/uploads/${filename}` });
 });
