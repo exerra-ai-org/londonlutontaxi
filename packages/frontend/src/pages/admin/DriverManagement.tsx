@@ -5,7 +5,13 @@ import {
   type AdminDriverRow,
 } from "../../api/drivers";
 import { SkeletonCard } from "../../components/Skeleton";
-import { IconUser, IconStar, IconCar, IconPlus, IconX } from "../../components/icons";
+import {
+  IconUser,
+  IconStar,
+  IconCar,
+  IconPlus,
+  IconX,
+} from "../../components/icons";
 import { ApiError } from "../../api/client";
 
 export default function DriverManagement() {
