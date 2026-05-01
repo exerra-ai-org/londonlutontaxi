@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { secureHeaders } from "hono/secure-headers";
+import { bodyLimit } from "hono/body-limit";
 import { join } from "path";
 import { config } from "./config";
 import { authRoutes } from "./routes/auth";
@@ -22,6 +24,34 @@ import { resolveSafeUploadPath } from "./lib/safeUploadPath";
 const app = new Hono();
 
 app.use("*", logger());
+
+app.use(
+  "*",
+  secureHeaders({
+    // Frontend assets are served separately (Vite/CDN); a tight CSP for
+    // the JSON API is fine.
+    contentSecurityPolicy: {
+      defaultSrc: ["'none'"],
+      frameAncestors: ["'none'"],
+    },
+    strictTransportSecurity: config.isProduction
+      ? "max-age=63072000; includeSubDomains; preload"
+      : false,
+    xFrameOptions: "DENY",
+    xContentTypeOptions: "nosniff",
+    referrerPolicy: "strict-origin-when-cross-origin",
+  }),
+);
+
+// Default body limit. Upload routes opt into a larger ceiling.
+app.use(
+  "*",
+  bodyLimit({
+    maxSize: 1 * 1024 * 1024, // 1 MB
+    onError: (c) =>
+      c.json({ success: false, error: "Request body too large" }, 413),
+  }),
+);
 
 app.use(
   "/*",
@@ -49,6 +79,14 @@ app.route("/fixed-routes", fixedRouteRoutes);
 app.route("/notifications", notificationRoutes);
 app.route("/vehicles", vehicleRoutes);
 app.route("/admin", adminRoutes);
+app.use(
+  "/upload/*",
+  bodyLimit({
+    maxSize: 6 * 1024 * 1024, // 6 MB
+    onError: (c) =>
+      c.json({ success: false, error: "Upload too large" }, 413),
+  }),
+);
 app.route("/upload", uploadRoutes);
 app.route("/events", eventsRoutes);
 
@@ -73,6 +111,14 @@ app.get("/uploads/:filename", async (c) => {
       "X-Content-Type-Options": "nosniff",
     },
   });
+});
+
+app.notFound((c) => c.json({ success: false, error: "Not found" }, 404));
+
+app.onError((cause, c) => {
+  // Log full detail server-side; never leak the stack to clients.
+  console.error("[onError]", c.req.method, c.req.path, cause);
+  return c.json({ success: false, error: "Internal server error" }, 500);
 });
 
 startBackgroundJobs();
