@@ -3,13 +3,18 @@ import { sendHeartbeat } from "../api/drivers";
 
 export type GpsStatus = "idle" | "acquiring" | "active" | "no-gps" | "denied";
 
-const HEARTBEAT_MS = 30_000;
-const ACTIVE_STATUSES = new Set([
-  "assigned",
-  "en_route",
-  "arrived",
-  "in_progress",
-]);
+// Cadence is status-driven: faster while the customer is watching the map,
+// slower while the driver is just heading to pickup. Balances UX (smooth
+// marker) against driver battery and data usage.
+const HEARTBEAT_MS_BY_STATUS: Record<string, number> = {
+  assigned: 30_000,
+  en_route: 5_000,
+  arrived: 15_000,
+  in_progress: 5_000,
+};
+const HEARTBEAT_MS_DEFAULT = 30_000;
+
+const ACTIVE_STATUSES = new Set(Object.keys(HEARTBEAT_MS_BY_STATUS));
 
 export function useDriverHeartbeat(
   bookingId: number | null,
@@ -21,6 +26,9 @@ export function useDriverHeartbeat(
   const watchRef = useRef<number | null>(null);
 
   const isActive = Boolean(bookingId && status && ACTIVE_STATUSES.has(status));
+  const intervalMs = status
+    ? (HEARTBEAT_MS_BY_STATUS[status] ?? HEARTBEAT_MS_DEFAULT)
+    : HEARTBEAT_MS_DEFAULT;
 
   const beat = useCallback(async () => {
     if (!bookingId) return;
@@ -47,7 +55,6 @@ export function useDriverHeartbeat(
       return;
     }
 
-    // Start GPS watch
     if ("geolocation" in navigator) {
       setGpsStatus("acquiring");
       watchRef.current = navigator.geolocation.watchPosition(
@@ -65,9 +72,8 @@ export function useDriverHeartbeat(
       setGpsStatus("no-gps");
     }
 
-    // Send first beat immediately, then on interval
     beat();
-    intervalRef.current = setInterval(beat, HEARTBEAT_MS);
+    intervalRef.current = setInterval(beat, intervalMs);
 
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -76,7 +82,7 @@ export function useDriverHeartbeat(
       intervalRef.current = null;
       watchRef.current = null;
     };
-  }, [isActive, beat]);
+  }, [isActive, intervalMs, beat]);
 
   return { gpsStatus };
 }

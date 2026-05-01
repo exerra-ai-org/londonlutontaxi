@@ -186,6 +186,18 @@
   animation: pulse-ring 1.5s ease-out infinite;
 }
 
+/* Smooth driver marker movement between SSE location updates.
+   Leaflet repositions markers via inline transform on the marker root;
+   transitioning transform makes the marker glide instead of hop.
+   Transition is suppressed during Leaflet's zoom animation to avoid lag. */
+.leaflet-marker-icon.driver-marker-glide {
+  transition: transform 0.8s linear;
+  will-change: transform;
+}
+.leaflet-zoom-anim .leaflet-marker-icon.driver-marker-glide {
+  transition: none;
+}
+
 .animate-stagger-in {
   animation: slide-up 0.8s cubic-bezier(0.2, 1, 0.3, 1) both;
 }

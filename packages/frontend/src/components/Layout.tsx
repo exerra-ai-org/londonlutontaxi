@@ -15,6 +15,7 @@ import {
   IconGrid,
   IconLogout,
   IconBell,
+  IconMapPin,
 } from "./icons";
 
 /**
@@ -173,6 +174,7 @@ export default function Layout() {
               <>
                 <DesktopNavItem to="/admin" label="Rides" end />
                 <DesktopNavItem to="/admin/drivers" label="Drivers" />
+                <DesktopNavItem to="/admin/live-map" label="Live map" />
                 <DesktopNavItem to="/admin/coupons" label="Coupons" />
               </>
             )}
@@ -246,6 +248,11 @@ export default function Layout() {
                   to="/admin/drivers"
                   icon={<IconUser className="w-5 h-5" />}
                   label="Drivers"
+                />
+                <NavItem
+                  to="/admin/live-map"
+                  icon={<IconMapPin className="w-5 h-5" />}
+                  label="Live"
                 />
                 <NavItem
                   to="/admin/coupons"

@@ -1,16 +1,27 @@
 import { Hono } from "hono";
-import { eq, sql, avg, count } from "drizzle-orm";
+import { and, eq, gte, inArray, sql, avg, count } from "drizzle-orm";
 import {
   inviteUserSchema,
   driverProfileSchema,
   updateUserSchema,
 } from "shared/validation";
+import type { LiveDriver } from "shared/types";
 import { db } from "../db/index";
-import { users, driverProfiles, reviews } from "../db/schema";
+import {
+  users,
+  driverProfiles,
+  driverPresence,
+  driverAssignments,
+  bookings,
+  reviews,
+} from "../db/schema";
 import { authMiddleware, requireRole } from "../middleware/auth";
 import { ok, err } from "../lib/response";
 import { generateAuthToken } from "../lib/tokens";
 import { sendInvitationEmail } from "../services/email";
+
+// A driver counts as "live" if presence was pinged within this window.
+const LIVE_WINDOW_MS = 2 * 60 * 1000;
 
 export const adminRoutes = new Hono();
 
@@ -160,4 +171,125 @@ adminRoutes.put("/drivers/:id/profile", async (c) => {
     .from(driverProfiles)
     .where(eq(driverProfiles.driverId, id));
   return ok(c, { profile });
+});
+
+// Live drivers feed for the admin map. Returns drivers whose presence
+// was pinged inside LIVE_WINDOW_MS, with their latest coords plus an
+// active booking summary if they're currently on a ride.
+adminRoutes.get("/drivers/live", async (c) => {
+  const cutoff = new Date(Date.now() - LIVE_WINDOW_MS);
+
+  const liveRows = await db
+    .select({
+      driverId: driverPresence.driverId,
+      isOnDuty: driverPresence.isOnDuty,
+      lastSeenAt: driverPresence.lastSeenAt,
+      lat: driverPresence.lastLat,
+      lon: driverPresence.lastLon,
+      name: users.name,
+      phone: users.phone,
+    })
+    .from(driverPresence)
+    .innerJoin(users, eq(driverPresence.driverId, users.id))
+    .where(
+      and(
+        eq(driverPresence.isOnDuty, true),
+        gte(driverPresence.lastSeenAt, cutoff),
+      ),
+    );
+
+  if (liveRows.length === 0) return ok(c, { drivers: [] as LiveDriver[] });
+
+  const driverIds = liveRows.map((r) => r.driverId);
+
+  const profiles = await db
+    .select()
+    .from(driverProfiles)
+    .where(inArray(driverProfiles.driverId, driverIds));
+  const profileById = new Map(profiles.map((p) => [p.driverId, p]));
+
+  // Find each driver's currently-active booking, if any. A driver should
+  // only have one active assignment at a time, but if multiple ever leak
+  // through we pick the most "in-progress" one via status priority.
+  const ACTIVE_STATUSES = [
+    "assigned",
+    "en_route",
+    "arrived",
+    "in_progress",
+  ] as const;
+  const activeAssignments = await db
+    .select({
+      driverId: driverAssignments.driverId,
+      bookingId: bookings.id,
+      status: bookings.status,
+      pickupAddress: bookings.pickupAddress,
+      dropoffAddress: bookings.dropoffAddress,
+      pickupLat: bookings.pickupLat,
+      pickupLon: bookings.pickupLon,
+      dropoffLat: bookings.dropoffLat,
+      dropoffLon: bookings.dropoffLon,
+      customerName: users.name,
+      scheduledAt: bookings.scheduledAt,
+    })
+    .from(driverAssignments)
+    .innerJoin(bookings, eq(driverAssignments.bookingId, bookings.id))
+    .innerJoin(users, eq(bookings.customerId, users.id))
+    .where(
+      and(
+        inArray(driverAssignments.driverId, driverIds),
+        eq(driverAssignments.isActive, true),
+        inArray(bookings.status, [...ACTIVE_STATUSES]),
+      ),
+    );
+
+  const STATUS_PRIORITY: Record<string, number> = {
+    in_progress: 4,
+    arrived: 3,
+    en_route: 2,
+    assigned: 1,
+  };
+  const activeByDriver = new Map<number, (typeof activeAssignments)[number]>();
+  for (const row of activeAssignments) {
+    const existing = activeByDriver.get(row.driverId);
+    if (
+      !existing ||
+      (STATUS_PRIORITY[row.status] ?? 0) >
+        (STATUS_PRIORITY[existing.status] ?? 0)
+    ) {
+      activeByDriver.set(row.driverId, row);
+    }
+  }
+
+  const drivers: LiveDriver[] = liveRows
+    .filter((r) => r.lat != null && r.lon != null && r.lastSeenAt != null)
+    .map((r) => {
+      const active = activeByDriver.get(r.driverId);
+      const profile = profileById.get(r.driverId) ?? null;
+      return {
+        driverId: r.driverId,
+        name: r.name,
+        phone: r.phone,
+        vehicle: profile,
+        lat: r.lat as number,
+        lon: r.lon as number,
+        lastSeenAt: (r.lastSeenAt as Date).toISOString(),
+        isOnDuty: r.isOnDuty,
+        activeBooking: active
+          ? {
+              id: active.bookingId,
+              status: active.status,
+              pickupAddress: active.pickupAddress,
+              dropoffAddress: active.dropoffAddress,
+              pickupLat: active.pickupLat,
+              pickupLon: active.pickupLon,
+              dropoffLat: active.dropoffLat,
+              dropoffLon: active.dropoffLon,
+              customerName: active.customerName,
+              scheduledAt: active.scheduledAt.toISOString(),
+            }
+          : null,
+      };
+    });
+
+  return ok(c, { drivers });
 });

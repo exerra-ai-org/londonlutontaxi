@@ -149,6 +149,12 @@ export const driverHeartbeatSchema = z.object({
   lon: z.number().min(-180).max(180).optional(),
 });
 
+export const driverPresenceSchema = z.object({
+  isOnDuty: z.boolean(),
+  lat: z.number().min(-90).max(90).optional(),
+  lon: z.number().min(-180).max(180).optional(),
+});
+
 export const notificationSubscriptionSchema = z.object({
   endpoint: z.string().url(),
   p256dh: z.string().min(1),

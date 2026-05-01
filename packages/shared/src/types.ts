@@ -191,3 +191,26 @@ export interface PublicDriverProfile {
   totalReviews: number;
   vehicle: DriverProfile | null;
 }
+
+export interface LiveDriver {
+  driverId: number;
+  name: string;
+  phone: string | null;
+  vehicle: DriverProfile | null;
+  lat: number;
+  lon: number;
+  lastSeenAt: string;
+  isOnDuty: boolean;
+  activeBooking: {
+    id: number;
+    status: BookingStatus;
+    pickupAddress: string;
+    dropoffAddress: string;
+    pickupLat: number | null;
+    pickupLon: number | null;
+    dropoffLat: number | null;
+    dropoffLon: number | null;
+    customerName: string;
+    scheduledAt: string;
+  } | null;
+}

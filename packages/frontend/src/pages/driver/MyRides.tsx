@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import type { Booking } from "shared/types";
 import { listBookings } from "../../api/bookings";
 import { useRealtimeEvent } from "../../context/RealtimeContext";
+import { useAuth } from "../../context/AuthContext";
 import RideCard from "./RideCard";
 import { SkeletonCard } from "../../components/Skeleton";
 import {
   useDriverHeartbeat,
   type GpsStatus,
 } from "../../hooks/useDriverHeartbeat";
+import { useDriverPresence } from "../../hooks/useDriverPresence";
 import { IconGps, IconUser, IconRefresh } from "../../components/icons";
 
 const GPS_LABEL: Record<GpsStatus, string> = {
@@ -66,6 +68,9 @@ export default function MyRides() {
     trackingBooking?.status ?? null,
   );
 
+  const { user } = useAuth();
+  const { isOnDuty, toggleOnDuty } = useDriverPresence(user?.id ?? null);
+
   if (loading) {
     return (
       <div className="space-y-2">
@@ -92,6 +97,27 @@ export default function MyRides() {
           <h1 className="page-title">My rides</h1>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={toggleOnDuty}
+            className="page-header-btn"
+            aria-pressed={isOnDuty}
+            title={
+              isOnDuty
+                ? "You're visible on the dispatch map"
+                : "Go on duty to be visible on the dispatch map"
+            }
+          >
+            <span
+              className={`h-2 w-2 rounded-full ${
+                isOnDuty
+                  ? "bg-[var(--color-forest)] animate-pulse"
+                  : "bg-[var(--color-muted)]"
+              }`}
+            />
+            <span className="page-header-btn-label">
+              {isOnDuty ? "On duty" : "Off duty"}
+            </span>
+          </button>
           <Link to="/driver/profile" className="page-header-btn">
             <IconUser className="h-4 w-4" />
             <span className="page-header-btn-label">Profile</span>

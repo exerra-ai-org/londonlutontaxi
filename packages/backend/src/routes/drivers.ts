@@ -1,12 +1,17 @@
 import { Hono } from "hono";
 import { eq, sql, and, inArray, gte, avg, count } from "drizzle-orm";
-import { driverHeartbeatSchema, driverProfileSchema } from "shared/validation";
+import {
+  driverHeartbeatSchema,
+  driverPresenceSchema,
+  driverProfileSchema,
+} from "shared/validation";
 import { db } from "../db/index";
 import {
   users,
   driverAssignments,
   bookings,
   driverHeartbeats,
+  driverPresence,
   driverProfiles,
   reviews,
 } from "../db/schema";
@@ -171,7 +176,93 @@ driverRoutes.post(
       });
     }
 
+    // Mirror to driver_presence so the admin live map sees on-ride drivers
+    // even if they never explicitly toggled "on duty". An active ride is
+    // itself proof of being live.
+    if (lat != null && lon != null) {
+      await db
+        .insert(driverPresence)
+        .values({
+          driverId: payload.sub,
+          isOnDuty: true,
+          lastSeenAt: now,
+          lastLat: lat,
+          lastLon: lon,
+          updatedAt: now,
+        })
+        .onConflictDoUpdate({
+          target: driverPresence.driverId,
+          set: {
+            isOnDuty: true,
+            lastSeenAt: now,
+            lastLat: lat,
+            lastLon: lon,
+            updatedAt: now,
+          },
+        });
+
+      broadcastBookingEvent([], {
+        type: "driver_presence",
+        driverId: payload.sub,
+        isOnDuty: true,
+        lat,
+        lon,
+        lastSeenAt: now.toISOString(),
+      });
+    }
+
     return ok(c, { heartbeat });
+  },
+);
+
+// Driver presence ping. Called by the driver app every ~30s while the
+// driver has flipped the on-duty toggle. Used by the admin live map.
+driverRoutes.post(
+  "/presence",
+  authMiddleware,
+  requireRole("driver"),
+  async (c) => {
+    const payload = c.get("jwtPayload") as JwtPayload;
+    const body = await c.req.json();
+    const parsed = driverPresenceSchema.safeParse(body);
+    if (!parsed.success) {
+      return err(c, "Invalid input", 400, parsed.error.flatten());
+    }
+
+    const { isOnDuty, lat, lon } = parsed.data;
+    const now = new Date();
+
+    await db
+      .insert(driverPresence)
+      .values({
+        driverId: payload.sub,
+        isOnDuty,
+        lastSeenAt: isOnDuty ? now : null,
+        lastLat: lat ?? null,
+        lastLon: lon ?? null,
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: driverPresence.driverId,
+        set: {
+          isOnDuty,
+          lastSeenAt: isOnDuty ? now : null,
+          lastLat: lat ?? null,
+          lastLon: lon ?? null,
+          updatedAt: now,
+        },
+      });
+
+    broadcastBookingEvent([], {
+      type: "driver_presence",
+      driverId: payload.sub,
+      isOnDuty,
+      lat: lat ?? null,
+      lon: lon ?? null,
+      lastSeenAt: now.toISOString(),
+    });
+
+    return ok(c, { isOnDuty });
   },
 );
 

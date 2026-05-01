@@ -87,6 +87,20 @@ export function sendHeartbeat(input: {
   return api.post<{ heartbeat: DriverHeartbeat }>("/drivers/heartbeat", input);
 }
 
+export function sendPresence(input: {
+  isOnDuty: boolean;
+  lat?: number;
+  lon?: number;
+}) {
+  return api.post<{ isOnDuty: boolean }>("/drivers/presence", input);
+}
+
+import type { LiveDriver } from "shared/types";
+
+export function listLiveDrivers() {
+  return api.get<{ drivers: LiveDriver[] }>("/admin/drivers/live");
+}
+
 export interface WatchdogResult {
   checked: number;
   warnings: number[];

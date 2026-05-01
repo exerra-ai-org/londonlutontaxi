@@ -18,6 +18,14 @@ export type RealtimeEvent =
       lon: number;
       updatedAt: string;
     }
+  | {
+      type: "driver_presence";
+      driverId: number;
+      isOnDuty: boolean;
+      lat: number | null;
+      lon: number | null;
+      lastSeenAt: string;
+    }
   | { type: "drivers_assigned"; bookingId: number }
   | { type: "booking_cancelled"; bookingId: number }
   | { type: "ping" }

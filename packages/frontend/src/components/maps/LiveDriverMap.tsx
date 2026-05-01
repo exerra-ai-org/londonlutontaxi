@@ -39,7 +39,7 @@ function dropoffIcon() {
 function driverIcon() {
   return L.divIcon({
     html: `<div style="position:relative;width:36px;height:36px;display:flex;align-items:center;justify-content:center"><span style="position:absolute;inset:0;border-radius:50%;background:rgba(152,254,0,0.45);animation:pulse-ring 1.5s ease-out infinite"></span><div style="position:relative;background:#131313;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#98fe00;font-family:Roboto Mono,monospace;font-weight:700;font-size:10px;border:2px solid #98fe00;box-shadow:0 6px 14px rgba(19,19,19,.2)">·</div></div>`,
-    className: "",
+    className: "driver-marker-glide",
     iconSize: [36, 36],
     iconAnchor: [18, 18],
   });

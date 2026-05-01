@@ -246,6 +246,30 @@ export const driverHeartbeats = pgTable(
   ],
 );
 
+// ── Driver Presence ────────────────────────────────────
+//
+// One row per driver. Updated by the driver app while on duty (every 30s)
+// and by the heartbeat endpoint while a ride is active. The admin live map
+// reads this for "where is everyone right now" — a driver counts as live
+// when isOnDuty=true and lastSeenAt is recent.
+
+export const driverPresence = pgTable(
+  "driver_presence",
+  {
+    driverId: integer("driver_id")
+      .primaryKey()
+      .references(() => users.id),
+    isOnDuty: boolean("is_on_duty").notNull().default(false),
+    lastSeenAt: timestamp("last_seen_at"),
+    lastLat: doublePrecision("last_lat"),
+    lastLon: doublePrecision("last_lon"),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (table) => [
+    index("idx_driver_presence_live").on(table.isOnDuty, table.lastSeenAt),
+  ],
+);
+
 // ── Coupons ────────────────────────────────────────────
 
 export const coupons = pgTable("coupons", {

@@ -21,6 +21,7 @@ import CustomerRideDetail from "./pages/CustomerRideDetail";
 import RideTimeline from "./pages/admin/RideTimeline";
 import DriverManagement from "./pages/admin/DriverManagement";
 import CouponManagement from "./pages/admin/CouponManagement";
+import LiveDriversMap from "./pages/admin/LiveDriversMap";
 
 import MyRides from "./pages/driver/MyRides";
 import DriverProfile from "./pages/driver/Profile";
@@ -61,6 +62,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 <Route element={<ProtectedRoute roles={["admin"]} />}>
                   <Route path="/admin" element={<RideTimeline />} />
                   <Route path="/admin/drivers" element={<DriverManagement />} />
+                  <Route path="/admin/live-map" element={<LiveDriversMap />} />
                   <Route path="/admin/coupons" element={<CouponManagement />} />
                   <Route path="/admin/profile" element={<ProfilePage />} />
                 </Route>
