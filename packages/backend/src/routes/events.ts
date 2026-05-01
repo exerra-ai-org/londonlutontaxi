@@ -17,6 +17,15 @@ const QUEUE_MAX = 500;
 eventsRoutes.get("/", authMiddleware, (c) => {
   const payload = c.get("jwtPayload") as JwtPayload;
 
+  // SSE behind a reverse proxy needs explicit "do not buffer" hints.
+  // - X-Accel-Buffering: nginx / many platform ingresses honor this and
+  //   stop buffering responses so events reach the client in real time.
+  // - Cache-Control no-transform: prevents gzip/transformations that
+  //   would force the proxy to buffer the full response before flushing.
+  // streamSSE already sets text/event-stream and keep-alive.
+  c.header("X-Accel-Buffering", "no");
+  c.header("Cache-Control", "no-cache, no-transform");
+
   return streamSSE(c, async (stream) => {
     const pending = createBoundedQueue<BroadcastEvent>({
       max: QUEUE_MAX,
