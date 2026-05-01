@@ -30,9 +30,7 @@ beforeAll(async () => {
 
 describe("global hardening middleware", () => {
   test("/health responds and carries security headers", async () => {
-    const res = await appDefault.fetch(
-      new Request("http://localhost/health"),
-    );
+    const res = await appDefault.fetch(new Request("http://localhost/health"));
     expect(res.status).toBe(200);
 
     // secureHeaders defaults

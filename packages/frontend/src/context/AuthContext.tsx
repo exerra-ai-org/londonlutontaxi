@@ -16,9 +16,7 @@ import type { AuthUser, CheckEmailResponse } from "../api/auth";
 // one too. Logout also broadcasts so all tabs sign out together.
 const AUTH_CHANNEL = "auth";
 
-type AuthChannelMessage =
-  | { type: "signed-in" }
-  | { type: "signed-out" };
+type AuthChannelMessage = { type: "signed-in" } | { type: "signed-out" };
 
 interface AuthContextType {
   user: AuthUser | null;

@@ -38,9 +38,7 @@ describe("createBoundedQueue", () => {
       overflowSentinel: OVERFLOW,
     });
     for (let i = 1; i <= 5; i++) q.push({ n: i });
-    expect(
-      q.drain().filter((d) => d === OVERFLOW).length,
-    ).toBe(1);
+    expect(q.drain().filter((d) => d === OVERFLOW).length).toBe(1);
     q.push({ n: 100 });
     const next = q.drain();
     expect(next.filter((d) => d === OVERFLOW).length).toBe(0);

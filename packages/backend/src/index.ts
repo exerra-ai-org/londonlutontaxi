@@ -122,8 +122,7 @@ app.use(
   "/upload/*",
   bodyLimit({
     maxSize: 6 * 1024 * 1024, // 6 MB
-    onError: (c) =>
-      c.json({ success: false, error: "Upload too large" }, 413),
+    onError: (c) => c.json({ success: false, error: "Upload too large" }, 413),
   }),
 );
 app.route("/upload", uploadRoutes);

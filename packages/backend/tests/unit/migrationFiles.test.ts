@@ -8,7 +8,9 @@ describe("migration 0001 — index coverage", () => {
   const sql = readFileSync(MIG_PATH, "utf8");
 
   test("creates the customer-id booking index", () => {
-    expect(sql).toContain('CREATE INDEX IF NOT EXISTS "idx_bookings_customer_id"');
+    expect(sql).toContain(
+      'CREATE INDEX IF NOT EXISTS "idx_bookings_customer_id"',
+    );
   });
 
   test("creates the status+scheduled_at composite", () => {

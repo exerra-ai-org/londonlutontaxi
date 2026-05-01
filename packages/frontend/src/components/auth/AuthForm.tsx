@@ -217,7 +217,9 @@ export default function AuthForm({
             minutes.
           </p>
           <div>
-            <label className="field-label mb-2 block">/ Or paste your token</label>
+            <label className="field-label mb-2 block">
+              / Or paste your token
+            </label>
             <input
               type="text"
               value={magicToken}
@@ -274,29 +276,45 @@ export default function AuthForm({
       )}
 
       {/* Main forms */}
-      {mode.kind !== "magic-link-sent" &&
-        mode.kind !== "magic-link-verify" && (
-          <form
-            onSubmit={showCredential ? submitCredential : submitEmail}
-            className="space-y-5"
-          >
-            <div>
-              <label className="field-label mb-2 block">/ Email</label>
+      {mode.kind !== "magic-link-sent" && mode.kind !== "magic-link-verify" && (
+        <form
+          onSubmit={showCredential ? submitCredential : submitEmail}
+          className="space-y-5"
+        >
+          <div>
+            <label className="field-label mb-2 block">/ Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoFocus={mode.kind === "email"}
+              disabled={showCredential || busy}
+              className="ds-input"
+              placeholder="you@domain.com"
+            />
+          </div>
+
+          {/* Staff password login */}
+          {mode.kind === "password" && (
+            <div className="animate-slide-up">
+              <label className="field-label mb-2 block">/ Password</label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 required
-                autoFocus={mode.kind === "email"}
-                disabled={showCredential || busy}
+                autoFocus
                 className="ds-input"
-                placeholder="you@domain.com"
+                placeholder="••••••••"
               />
             </div>
+          )}
 
-            {/* Staff password login */}
-            {mode.kind === "password" && (
-              <div className="animate-slide-up">
+          {/* Customer login — always show password field with fallback options */}
+          {mode.kind === "customer-login" && (
+            <div className="animate-slide-up space-y-5">
+              <div>
                 <label className="field-label mb-2 block">/ Password</label>
                 <input
                   type="password"
@@ -308,179 +326,162 @@ export default function AuthForm({
                   placeholder="••••••••"
                 />
               </div>
-            )}
+              <div className="flex items-center justify-between gap-4">
+                {showResetLink ? (
+                  <Link to="/reset-password" className="subtle-link text-sm">
+                    Forgot password?
+                  </Link>
+                ) : (
+                  <span />
+                )}
+                <button
+                  type="button"
+                  className="subtle-link text-sm"
+                  disabled={busy}
+                  onClick={() => handleSendMagicLink()}
+                >
+                  Use email link instead
+                </button>
+              </div>
+            </div>
+          )}
 
-            {/* Customer login — always show password field with fallback options */}
-            {mode.kind === "customer-login" && (
-              <div className="animate-slide-up space-y-5">
-                <div>
-                  <label className="field-label mb-2 block">/ Password</label>
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    autoFocus
-                    className="ds-input"
-                    placeholder="••••••••"
-                  />
-                </div>
-                <div className="flex items-center justify-between gap-4">
-                  {showResetLink ? (
-                    <Link to="/reset-password" className="subtle-link text-sm">
-                      Forgot password?
-                    </Link>
-                  ) : (
-                    <span />
-                  )}
+          {/* Registration form */}
+          {mode.kind === "register" && (
+            <div className="animate-slide-up space-y-5">
+              <div>
+                <label className="field-label mb-2 block">/ Full name</label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  autoFocus
+                  className="ds-input"
+                  placeholder="Jane Doe"
+                />
+              </div>
+
+              <div>
+                <label className="field-label mb-2 block">
+                  / Phone{" "}
+                  <span className="text-[var(--color-muted)] font-normal">
+                    (optional)
+                  </span>
+                </label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  minLength={6}
+                  className="ds-input"
+                  placeholder="07700 000000"
+                />
+              </div>
+
+              {/* Auth method toggle */}
+              <div>
+                <label className="field-label mb-2 block">
+                  / Sign-in method
+                </label>
+                <div className="flex gap-2">
                   <button
                     type="button"
-                    className="subtle-link text-sm"
-                    disabled={busy}
-                    onClick={() => handleSendMagicLink()}
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                      registerMethod === "password"
+                        ? "border-white bg-white text-black"
+                        : "border-neutral-700 bg-transparent text-neutral-400 hover:border-neutral-500"
+                    }`}
+                    onClick={() => setRegisterMethod("password")}
                   >
-                    Use email link instead
+                    Password
+                  </button>
+                  <button
+                    type="button"
+                    className={`flex-1 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                      registerMethod === "magic-link"
+                        ? "border-white bg-white text-black"
+                        : "border-neutral-700 bg-transparent text-neutral-400 hover:border-neutral-500"
+                    }`}
+                    onClick={() => setRegisterMethod("magic-link")}
+                  >
+                    Email link
                   </button>
                 </div>
               </div>
-            )}
 
-            {/* Registration form */}
-            {mode.kind === "register" && (
-              <div className="animate-slide-up space-y-5">
-                <div>
-                  <label className="field-label mb-2 block">/ Full name</label>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    autoFocus
-                    className="ds-input"
-                    placeholder="Jane Doe"
-                  />
-                </div>
-
-                <div>
-                  <label className="field-label mb-2 block">
-                    / Phone{" "}
-                    <span className="text-[var(--color-muted)] font-normal">
-                      (optional)
-                    </span>
-                  </label>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    minLength={6}
-                    className="ds-input"
-                    placeholder="07700 000000"
-                  />
-                </div>
-
-                {/* Auth method toggle */}
-                <div>
-                  <label className="field-label mb-2 block">
-                    / Sign-in method
-                  </label>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      className={`flex-1 rounded-lg border px-3 py-2 text-sm transition-colors ${
-                        registerMethod === "password"
-                          ? "border-white bg-white text-black"
-                          : "border-neutral-700 bg-transparent text-neutral-400 hover:border-neutral-500"
-                      }`}
-                      onClick={() => setRegisterMethod("password")}
-                    >
-                      Password
-                    </button>
-                    <button
-                      type="button"
-                      className={`flex-1 rounded-lg border px-3 py-2 text-sm transition-colors ${
-                        registerMethod === "magic-link"
-                          ? "border-white bg-white text-black"
-                          : "border-neutral-700 bg-transparent text-neutral-400 hover:border-neutral-500"
-                      }`}
-                      onClick={() => setRegisterMethod("magic-link")}
-                    >
-                      Email link
-                    </button>
+              {registerMethod === "password" && (
+                <div className="animate-slide-up space-y-5">
+                  <div>
+                    <label className="field-label mb-2 block">/ Password</label>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      className="ds-input"
+                      placeholder="Min. 8 characters"
+                    />
+                  </div>
+                  <div>
+                    <label className="field-label mb-2 block">
+                      / Confirm password
+                    </label>
+                    <input
+                      type="password"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      minLength={8}
+                      className="ds-input"
+                      placeholder="Re-enter your password"
+                    />
                   </div>
                 </div>
+              )}
 
-                {registerMethod === "password" && (
-                  <div className="animate-slide-up space-y-5">
-                    <div>
-                      <label className="field-label mb-2 block">/ Password</label>
-                      <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                        minLength={8}
-                        className="ds-input"
-                        placeholder="Min. 8 characters"
-                      />
-                    </div>
-                    <div>
-                      <label className="field-label mb-2 block">
-                        / Confirm password
-                      </label>
-                      <input
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                        minLength={8}
-                        className="ds-input"
-                        placeholder="Re-enter your password"
-                      />
-                    </div>
-                  </div>
-                )}
+              {registerMethod === "magic-link" && (
+                <p className="animate-slide-up text-sm text-[var(--color-muted)]">
+                  We'll send a sign-in link to your email each time you log in —
+                  no password needed.
+                </p>
+              )}
+            </div>
+          )}
 
-                {registerMethod === "magic-link" && (
-                  <p className="animate-slide-up text-sm text-[var(--color-muted)]">
-                    We'll send a sign-in link to your email each time you log
-                    in — no password needed.
-                  </p>
-                )}
-              </div>
-            )}
+          <button
+            type="submit"
+            disabled={busy}
+            className={`${mode.kind === "register" ? "btn-green" : "btn-primary"} w-full`}
+          >
+            <span>
+              {busy
+                ? mode.kind === "email"
+                  ? "Checking..."
+                  : "Signing in..."
+                : mode.kind === "email"
+                  ? "Continue"
+                  : mode.kind === "register"
+                    ? "Create account"
+                    : "Sign in"}
+            </span>
+            <span className="btn-icon" aria-hidden="true">
+              <span className="btn-icon-glyph">↗</span>
+            </span>
+          </button>
 
+          {showCredential && (
             <button
-              type="submit"
-              disabled={busy}
-              className={`${mode.kind === "register" ? "btn-green" : "btn-primary"} w-full`}
+              type="button"
+              className="subtle-link block w-full text-center"
+              onClick={reset}
             >
-              <span>
-                {busy
-                  ? mode.kind === "email"
-                    ? "Checking..."
-                    : "Signing in..."
-                  : mode.kind === "email"
-                    ? "Continue"
-                    : mode.kind === "register"
-                      ? "Create account"
-                      : "Sign in"}
-              </span>
-              <span className="btn-icon" aria-hidden="true">
-                <span className="btn-icon-glyph">↗</span>
-              </span>
+              Use a different email
             </button>
-
-            {showCredential && (
-              <button
-                type="button"
-                className="subtle-link block w-full text-center"
-                onClick={reset}
-              >
-                Use a different email
-              </button>
-            )}
-          </form>
-        )}
+          )}
+        </form>
+      )}
     </div>
   );
 }

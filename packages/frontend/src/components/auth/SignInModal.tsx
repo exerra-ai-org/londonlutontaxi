@@ -21,7 +21,12 @@ export default function SignInModal({
   initialEmail,
 }: Props) {
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Sign in to continue" size="md">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Sign in to continue"
+      size="md"
+    >
       <AuthForm
         initialEmail={initialEmail}
         showResetLink={false}

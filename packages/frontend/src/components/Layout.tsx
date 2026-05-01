@@ -49,7 +49,8 @@ function NavItem({
       end={to === "/" || to === "/admin" || to === "/driver"}
       className={({ isActive }) =>
         `mobile-nav-link ${isActive ? "mobile-nav-link-active" : ""}`
-      }>
+      }
+    >
       {icon}
       <span>{label}</span>
     </NavLink>
@@ -71,7 +72,8 @@ function DesktopNavItem({
       end={end}
       className={({ isActive }) =>
         `nav-link ${isActive ? "nav-link-active" : ""}`
-      }>
+      }
+    >
       {label}
     </NavLink>
   );
@@ -131,7 +133,8 @@ function NotificationBell({ userId }: { userId: number }) {
       disabled={loading || denied}
       title={title}
       aria-label={title}
-      className={`topbar-icon-btn relative${denied ? " opacity-40" : ""}`}>
+      className={`topbar-icon-btn relative${denied ? " opacity-40" : ""}`}
+    >
       <IconBell className="h-4 w-4" filled={subscribed} />
       {subscribed && (
         <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-[var(--color-forest)]" />
@@ -189,7 +192,8 @@ export default function Layout() {
                   onClick={handleLogout}
                   title="Sign out"
                   aria-label="Sign out"
-                  className="topbar-icon-btn">
+                  className="topbar-icon-btn"
+                >
                   <IconLogout className="h-4 w-4" />
                 </button>
               </>

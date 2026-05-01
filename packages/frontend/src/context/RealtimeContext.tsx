@@ -52,9 +52,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         if (event.type === "overflow") {
           // Server dropped events because we fell behind. Fan out to every
           // registered handler so each subscriber refetches state.
-          handlers.current.forEach((set) =>
-            set.forEach((h) => h(event)),
-          );
+          handlers.current.forEach((set) => set.forEach((h) => h(event)));
           return;
         }
         handlers.current.get(event.type)?.forEach((h) => h(event));

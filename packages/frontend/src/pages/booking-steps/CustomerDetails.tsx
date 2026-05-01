@@ -73,10 +73,7 @@ export default function CustomerDetails({ onNext, onBack }: Props) {
         </button>
       </div>
 
-      <SignInModal
-        isOpen={signInOpen}
-        onClose={() => setSignInOpen(false)}
-      />
+      <SignInModal isOpen={signInOpen} onClose={() => setSignInOpen(false)} />
     </div>
   );
 }

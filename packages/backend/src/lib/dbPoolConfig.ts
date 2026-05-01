@@ -23,9 +23,15 @@ export interface DbPoolConfig {
   connectTimeoutSeconds: number;
 }
 
-export function readDbPoolConfig(env: Record<string, string | undefined>): DbPoolConfig {
+export function readDbPoolConfig(
+  env: Record<string, string | undefined>,
+): DbPoolConfig {
   return {
-    max: clamp(parsePositiveInt(env.DB_POOL_MAX, POOL_MAX_DEFAULT), 1, POOL_MAX_CEILING),
+    max: clamp(
+      parsePositiveInt(env.DB_POOL_MAX, POOL_MAX_DEFAULT),
+      1,
+      POOL_MAX_CEILING,
+    ),
     idleTimeoutSeconds: parsePositiveInt(
       env.DB_IDLE_TIMEOUT_SECONDS,
       IDLE_TIMEOUT_DEFAULT,
