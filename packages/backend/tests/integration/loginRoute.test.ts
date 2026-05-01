@@ -64,7 +64,10 @@ describe("POST /auth/login — security", () => {
 
     const res = await app.request("/auth/login", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": "192.0.2.12",
+      },
       body: JSON.stringify({
         email: "alice@example.com",
         phone: "07123456789",
@@ -85,7 +88,10 @@ describe("POST /auth/login — security", () => {
 
     const res = await app.request("/auth/login", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": "192.0.2.10", // unique IP avoids shared rate-limit bucket
+      },
       body: JSON.stringify({ email: "nope@example.com", password: "x" }),
     });
 
@@ -109,7 +115,10 @@ describe("POST /auth/login — security", () => {
 
     const res = await app.request("/auth/login", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "x-forwarded-for": "192.0.2.11",
+      },
       body: JSON.stringify({ email: "bob@example.com" }),
     });
 

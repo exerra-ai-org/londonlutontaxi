@@ -97,7 +97,7 @@ authRoutes.post("/check-email", emailFlowLimiter, async (c) => {
       passwordHash: users.passwordHash,
     })
     .from(users)
-    .where(sql`LOWER(${users.email}) = ${email}`)
+    .where(eq(users.email, email))
     .limit(1);
 
   if (result.length === 0) {
@@ -126,7 +126,7 @@ authRoutes.post("/login", loginLimiter, async (c) => {
   const result = await db
     .select()
     .from(users)
-    .where(sql`LOWER(${users.email}) = ${email}`)
+    .where(eq(users.email, email))
     .limit(1);
 
   // Generic 401 for unknown email — avoids account enumeration via /login.
@@ -185,7 +185,7 @@ authRoutes.post("/register", registerLimiter, async (c) => {
   const existing = await db
     .select()
     .from(users)
-    .where(sql`LOWER(${users.email}) = ${email}`)
+    .where(eq(users.email, email))
     .limit(1);
 
   if (existing.length > 0) {
@@ -244,7 +244,7 @@ authRoutes.post("/magic-link", emailFlowLimiter, async (c) => {
   const result = await db
     .select({ id: users.id, name: users.name })
     .from(users)
-    .where(sql`LOWER(${users.email}) = ${email}`)
+    .where(eq(users.email, email))
     .limit(1);
 
   if (result.length === 0) {
@@ -323,7 +323,7 @@ authRoutes.post("/reset-password/request", emailFlowLimiter, async (c) => {
   const result = await db
     .select({ id: users.id, name: users.name })
     .from(users)
-    .where(sql`LOWER(${users.email}) = ${email}`)
+    .where(eq(users.email, email))
     .limit(1);
 
   if (result.length === 0) {

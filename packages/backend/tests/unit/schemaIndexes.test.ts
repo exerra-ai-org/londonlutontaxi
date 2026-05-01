@@ -15,13 +15,13 @@ function indexNames(table: any): string[] {
 }
 
 describe("schema indexes — declared in source", () => {
-  test("users has indexes for token lookups, role, lower-email", () => {
+  test("users has indexes for token lookups and role (email canonical → unique btree on email serves login)", () => {
     const names = indexNames(users);
     expect(names).toContain("idx_users_role");
     expect(names).toContain("idx_users_magic_link_token");
     expect(names).toContain("idx_users_reset_password_token");
     expect(names).toContain("idx_users_invitation_token");
-    expect(names).toContain("idx_users_email_lower");
+    expect(names).not.toContain("idx_users_email_lower");
   });
 
   test("bookings has indexes on customer_id, status, scheduled_at + composite", () => {

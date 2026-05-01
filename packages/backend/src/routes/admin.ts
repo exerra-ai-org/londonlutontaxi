@@ -29,7 +29,7 @@ adminRoutes.post("/invite", async (c) => {
   const existing = await db
     .select({ id: users.id })
     .from(users)
-    .where(sql`LOWER(${users.email}) = ${normalizedEmail}`)
+    .where(eq(users.email, normalizedEmail))
     .limit(1);
 
   if (existing.length > 0)

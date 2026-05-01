@@ -71,9 +71,8 @@ export const users = pgTable(
     index("idx_users_magic_link_token").on(table.magicLinkToken),
     index("idx_users_reset_password_token").on(table.resetPasswordToken),
     index("idx_users_invitation_token").on(table.invitationToken),
-    // Login does WHERE LOWER(email) = ? — the unique btree on email cannot
-    // serve that, so add a functional index.
-    index("idx_users_email_lower").on(sql`LOWER(${table.email})`),
+    // Email is stored canonically lowercase; the unique btree on email
+    // already serves login lookups directly.
   ],
 );
 
