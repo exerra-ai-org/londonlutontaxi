@@ -9,7 +9,8 @@ export type BroadcastEvent =
     }
   | { type: "drivers_assigned"; bookingId: number }
   | { type: "booking_cancelled"; bookingId: number }
-  | { type: "ping" };
+  | { type: "ping" }
+  | { type: "overflow" };
 
 type Callback = (event: BroadcastEvent) => void;
 

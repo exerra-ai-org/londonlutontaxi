@@ -2,16 +2,26 @@ import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { authMiddleware } from "../middleware/auth";
 import { subscribe } from "../services/broadcaster";
+import { createBoundedQueue } from "../lib/boundedQueue";
 import type { JwtPayload } from "../middleware/auth";
 import type { BroadcastEvent } from "../services/broadcaster";
 
 export const eventsRoutes = new Hono();
 
+// A slow client must not be able to hold unbounded memory in the server.
+// At 500 events the consumer has clearly fallen behind — we drop oldest and
+// signal overflow so the client refetches state instead of trying to play
+// catch-up via the stream.
+const QUEUE_MAX = 500;
+
 eventsRoutes.get("/", authMiddleware, (c) => {
   const payload = c.get("jwtPayload") as JwtPayload;
 
   return streamSSE(c, async (stream) => {
-    const pending: BroadcastEvent[] = [];
+    const pending = createBoundedQueue<BroadcastEvent>({
+      max: QUEUE_MAX,
+      overflowSentinel: { type: "overflow" },
+    });
     let resolver: (() => void) | null = null;
 
     const enqueue = (event: BroadcastEvent) => {
@@ -29,8 +39,8 @@ eventsRoutes.get("/", authMiddleware, (c) => {
 
     try {
       while (true) {
-        while (pending.length > 0) {
-          const event = pending.shift()!;
+        const drained = pending.drain();
+        for (const event of drained) {
           await stream.writeSSE({ data: JSON.stringify(event) });
         }
         await new Promise<void>((r) => {
