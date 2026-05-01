@@ -1,4 +1,5 @@
 export type BroadcastEvent =
+  | { type: "booking_created"; bookingId: number; customerId: number }
   | { type: "booking_updated"; bookingId: number; status: string }
   | {
       type: "driver_location";

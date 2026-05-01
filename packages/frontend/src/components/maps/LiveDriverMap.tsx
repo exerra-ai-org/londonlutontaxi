@@ -97,9 +97,16 @@ export default function LiveDriverMap({
 
   useRealtimeEvent("driver_location", (e) => {
     if (!trackable || e.bookingId !== bookingId) return;
-    const loc = { lat: e.lat, lon: e.lon, updatedAt: e.updatedAt };
-    setDriver(loc);
-    onUpdate?.(loc);
+    setDriver((prev) => {
+      const loc = {
+        lat: e.lat,
+        lon: e.lon,
+        lastUpdatedAt: e.updatedAt,
+        distanceMiles: prev?.distanceMiles ?? null,
+      };
+      onUpdate?.(loc);
+      return loc;
+    });
   });
 
   const driverCoords =

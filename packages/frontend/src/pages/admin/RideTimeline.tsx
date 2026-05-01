@@ -83,6 +83,7 @@ export default function RideTimeline() {
     fetchBookings();
   }, [fetchBookings]);
 
+  useRealtimeEvent("booking_created", fetchBookings);
   useRealtimeEvent("booking_updated", fetchBookings);
   useRealtimeEvent("drivers_assigned", fetchBookings);
   useRealtimeEvent("booking_cancelled", fetchBookings);

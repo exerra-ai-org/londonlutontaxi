@@ -9,6 +9,7 @@ import { config } from "../config";
 import { useAuth } from "./AuthContext";
 
 export type RealtimeEvent =
+  | { type: "booking_created"; bookingId: number; customerId: number }
   | { type: "booking_updated"; bookingId: number; status: string }
   | {
       type: "driver_location";
@@ -19,7 +20,8 @@ export type RealtimeEvent =
     }
   | { type: "drivers_assigned"; bookingId: number }
   | { type: "booking_cancelled"; bookingId: number }
-  | { type: "ping" };
+  | { type: "ping" }
+  | { type: "overflow" };
 
 type AnyHandler = (event: RealtimeEvent) => void;
 
@@ -47,6 +49,14 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       try {
         const event = JSON.parse(e.data as string) as RealtimeEvent;
         if (event.type === "ping") return;
+        if (event.type === "overflow") {
+          // Server dropped events because we fell behind. Fan out to every
+          // registered handler so each subscriber refetches state.
+          handlers.current.forEach((set) =>
+            set.forEach((h) => h(event)),
+          );
+          return;
+        }
         handlers.current.get(event.type)?.forEach((h) => h(event));
       } catch {}
     };

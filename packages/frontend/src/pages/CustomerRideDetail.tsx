@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRealtimeEvent } from "../context/RealtimeContext";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import type { Booking, BookingStatus, DriverLocation } from "shared/types";
@@ -263,7 +263,14 @@ export default function CustomerRideDetail() {
 
   useRealtimeEvent("driver_location", (e) => {
     if (e.bookingId === bookingId) {
-      setDriverLoc({ lat: e.lat, lon: e.lon, updatedAt: e.updatedAt });
+      setDriverLoc((prev) => ({
+        lat: e.lat,
+        lon: e.lon,
+        lastUpdatedAt: e.updatedAt,
+        // distanceMiles comes from the REST endpoint; preserve the last
+        // value until the next refetch.
+        distanceMiles: prev?.distanceMiles ?? null,
+      }));
     }
   });
 

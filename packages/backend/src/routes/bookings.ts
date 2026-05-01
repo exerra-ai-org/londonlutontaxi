@@ -249,6 +249,14 @@ bookingRoutes.post("/", requireRole("customer"), async (c) => {
       notifyBookingCreated(booking.id),
     );
 
+    // Tell the customer's own open SSE connections (e.g., booking history
+    // tab) and any admin watching the dispatch board.
+    broadcastBookingEvent([booking.customerId], {
+      type: "booking_created",
+      bookingId: booking.id,
+      customerId: booking.customerId,
+    });
+
     return ok(c, { booking }, 201);
   } catch (cause) {
     if (cause instanceof BookingRequestError) {
