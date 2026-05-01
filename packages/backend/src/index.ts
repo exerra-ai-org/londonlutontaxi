@@ -17,6 +17,7 @@ import { adminRoutes } from "./routes/admin";
 import { uploadRoutes } from "./routes/upload";
 import { eventsRoutes } from "./routes/events";
 import { startBackgroundJobs } from "./services/jobs";
+import { resolveSafeUploadPath } from "./lib/safeUploadPath";
 
 const app = new Hono();
 
@@ -55,14 +56,12 @@ app.route("/events", eventsRoutes);
 const UPLOAD_DIR = join(import.meta.dir, "../uploads");
 
 app.get("/uploads/:filename", async (c) => {
-  const filename = c.req.param("filename");
-
-  if (filename.includes("..") || filename.includes("/")) {
+  const safePath = resolveSafeUploadPath(UPLOAD_DIR, c.req.param("filename"));
+  if (!safePath) {
     return c.text("Not found", 404);
   }
 
-  const file = Bun.file(join(UPLOAD_DIR, filename));
-
+  const file = Bun.file(safePath);
   if (!(await file.exists())) {
     return c.text("Not found", 404);
   }
@@ -71,6 +70,7 @@ app.get("/uploads/:filename", async (c) => {
     headers: {
       "Content-Type": file.type,
       "Cache-Control": "public, max-age=31536000, immutable",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 });
