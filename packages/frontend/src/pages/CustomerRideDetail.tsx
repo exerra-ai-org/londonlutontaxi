@@ -28,7 +28,6 @@ import {
   IconArrowLeft,
   IconPlane,
   IconStar,
-  IconEdit,
   IconX,
 } from "../components/icons";
 import MapBackdrop, { type Coords } from "./booking/MapBackdrop";
@@ -360,7 +359,7 @@ export default function CustomerRideDetail() {
 
   const tIdx = timelineIndex(booking.status);
   const isCancelled = booking.status === "cancelled";
-  const canEdit =
+  const canCancel =
     booking.status === "scheduled" || booking.status === "assigned";
   const canReview =
     booking.status === "completed" && !detail?.review && !booking.hasReview;
@@ -763,24 +762,13 @@ export default function CustomerRideDetail() {
                   </span>
                 </button>
               )}
-              {canEdit && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => toast.info("Edit coming soon")}
-                    className="btn-secondary flex-1"
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <IconEdit className="h-4 w-4" />
-                      Edit
-                    </span>
-                  </button>
-                  <button onClick={handleCancel} className="btn-ghost flex-1">
-                    <span className="inline-flex items-center gap-2 text-[var(--color-error)]">
-                      <IconX className="h-4 w-4" />
-                      Cancel
-                    </span>
-                  </button>
-                </div>
+              {canCancel && (
+                <button onClick={handleCancel} className="btn-ghost w-full">
+                  <span className="inline-flex items-center gap-2 text-[var(--color-error)]">
+                    <IconX className="h-4 w-4" />
+                    Cancel
+                  </span>
+                </button>
               )}
             </div>
           </div>

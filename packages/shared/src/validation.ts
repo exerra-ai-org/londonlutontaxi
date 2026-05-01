@@ -34,19 +34,6 @@ export const createBookingSchema = z.object({
   vehicleClass: vehicleClassSchema.default("regular"),
 });
 
-export const updateBookingSchema = z.object({
-  pickupAddress: z.string().min(1).optional(),
-  dropoffAddress: z.string().min(1).optional(),
-  scheduledAt: z.string().datetime().optional(),
-  pickupLat: z.number().optional(),
-  pickupLon: z.number().optional(),
-  dropoffLat: z.number().optional(),
-  dropoffLon: z.number().optional(),
-  pickupFlightNumber: z.string().max(10).optional().nullable(),
-  dropoffFlightNumber: z.string().max(10).optional().nullable(),
-  flightNumber: z.string().max(10).optional().nullable(),
-});
-
 export const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().optional(),

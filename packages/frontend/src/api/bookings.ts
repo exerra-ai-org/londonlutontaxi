@@ -75,22 +75,6 @@ export function getBooking(id: number) {
   return api.get<BookingDetail>(`/bookings/${id}`);
 }
 
-export interface UpdateBookingInput {
-  scheduledAt?: string;
-  pickupAddress?: string;
-  dropoffAddress?: string;
-  pickupLat?: number | null;
-  pickupLon?: number | null;
-  dropoffLat?: number | null;
-  dropoffLon?: number | null;
-  pickupFlightNumber?: string | null;
-  dropoffFlightNumber?: string | null;
-}
-
-export function updateBooking(id: number, input: UpdateBookingInput) {
-  return api.patch<{ booking: Booking }>(`/bookings/${id}`, input);
-}
-
 export function updateBookingStatus(id: number, status: BookingStatus) {
   return api.patch<{ booking: Booking }>(`/bookings/${id}/status`, {
     status,

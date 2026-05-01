@@ -29,6 +29,13 @@
       "when": 1777665996572,
       "tag": "0003_robust_scarecrow",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1777672273371,
+      "tag": "0004_quick_longshot",
+      "breakpoints": true
     }
   ]
 }
