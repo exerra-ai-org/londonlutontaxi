@@ -602,5 +602,5 @@ export async function notifyIncident(
 }
 
 export function getPublicVapidKey(): string | null {
-  return VAPID_PUBLIC_KEY || null;
+  return PUSH_READY ? (config.push.publicKey ?? null) : null;
 }
