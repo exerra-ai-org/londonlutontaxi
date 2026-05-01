@@ -1,4 +1,5 @@
 import { validateRuntimeConfig } from "./lib/configValidation";
+import { readDbPoolConfig } from "./lib/dbPoolConfig";
 
 const nodeEnv = process.env.NODE_ENV || "development";
 
@@ -7,6 +8,8 @@ validateRuntimeConfig({
   jwtSecret: process.env.JWT_SECRET,
   databaseUrl: process.env.DATABASE_URL,
 });
+
+const dbPool = readDbPoolConfig(process.env);
 
 export const config = {
   env: nodeEnv as "development" | "production" | "test",
@@ -20,6 +23,7 @@ export const config = {
     url:
       process.env.DATABASE_URL ||
       "postgresql://postgres:postgres@localhost:5432/taxi",
+    pool: dbPool,
   },
 
   cors: {
