@@ -66,6 +66,20 @@ beforeAll(async () => {
   app.route("/bookings", bookingRoutes);
 });
 
+async function adminCookie(): Promise<string> {
+  const token = await sign(
+    {
+      sub: 99,
+      email: "admin@example.com",
+      role: "admin",
+      name: "Admin",
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    },
+    SECRET,
+  );
+  return `token=${token}`;
+}
+
 describe("GET /bookings — customer list", () => {
   test("uses left joins on reviews, driver_assignments and users (no correlated subqueries)", async () => {
     returnedRows = [];
@@ -117,5 +131,51 @@ describe("GET /bookings — customer list", () => {
     expect(b.reviewRating).toBe(5);
     expect(b.primaryDriverName).toBe("Bob");
     expect(b.primaryDriverPhone).toBe("07000");
+  });
+});
+
+describe("GET /bookings — admin list (audit B6)", () => {
+  // The admin branch used to do a bare SELECT from bookings, so frontend
+  // references to booking.customerName/customerPhone displayed as
+  // undefined. Lock in the join + selected columns here so the regression
+  // can't reappear.
+
+  test("inner joins users and selects customerName + customerPhone", async () => {
+    returnedRows = [];
+
+    const cookie = await adminCookie();
+    await app.request("/bookings", { headers: { cookie } });
+
+    const flat = lastJoinTargets.join(",");
+    expect(flat).toMatch(/inner:.*users/);
+
+    const cols = Object.keys(lastSelectShape ?? {});
+    expect(cols).toContain("customerName");
+    expect(cols).toContain("customerPhone");
+  });
+
+  test("returns customerName + customerPhone in the response shape", async () => {
+    returnedRows = [
+      {
+        id: 22,
+        customerId: 12,
+        pickupAddress: "X",
+        dropoffAddress: "Y",
+        status: "scheduled",
+        customerName: "Alice",
+        customerPhone: "07111",
+      },
+    ];
+
+    const cookie = await adminCookie();
+    const res = await app.request("/bookings", { headers: { cookie } });
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as {
+      success: boolean;
+      data: { bookings: any[] };
+    };
+    const b = body.data.bookings[0];
+    expect(b.customerName).toBe("Alice");
+    expect(b.customerPhone).toBe("07111");
   });
 });

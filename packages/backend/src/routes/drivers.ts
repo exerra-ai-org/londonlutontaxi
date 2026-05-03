@@ -32,8 +32,17 @@ import { broadcastBookingChange } from "../services/bookingBroadcast";
 
 export const driverRoutes = new Hono();
 
+// Last-broadcast bookkeeping for driver_presence dedup. The heartbeat
+// endpoint mirrors driver_presence so the admin map updates without an
+// explicit /presence ping; rebroadcasting on every 5s heartbeat is
+// wasteful. Skip if we re-broadcast within this window.
+const PRESENCE_REBROADCAST_MIN_MS = 25_000;
+const lastPresenceBroadcastByDriver = new Map<number, number>();
+
 // Admin list
 driverRoutes.get("/", authMiddleware, requireRole("admin"), async (c) => {
+  // Drivers + their profile in one query (left join — drivers without a
+  // profile still appear).
   const driverList = await db
     .select({
       id: users.id,
@@ -41,8 +50,10 @@ driverRoutes.get("/", authMiddleware, requireRole("admin"), async (c) => {
       name: users.name,
       phone: users.phone,
       createdAt: users.createdAt,
+      profile: driverProfiles,
     })
     .from(users)
+    .leftJoin(driverProfiles, eq(driverProfiles.driverId, users.id))
     .where(eq(users.role, "driver"));
 
   if (driverList.length === 0) {
@@ -52,54 +63,52 @@ driverRoutes.get("/", authMiddleware, requireRole("admin"), async (c) => {
   const driverIds = driverList.map((driver) => driver.id);
   const now = new Date();
 
-  const upcoming = await db
-    .select({
-      driverId: driverAssignments.driverId,
-      upcomingAssignments: sql<number>`COUNT(*)::int`,
-    })
-    .from(driverAssignments)
-    .innerJoin(bookings, eq(driverAssignments.bookingId, bookings.id))
-    .where(
-      and(
-        inArray(driverAssignments.driverId, driverIds),
-        eq(driverAssignments.isActive, true),
-        inArray(bookings.status, ["scheduled", "assigned", "en_route"]),
-        gte(bookings.scheduledAt, now),
-      ),
-    )
-    .groupBy(driverAssignments.driverId);
+  // Two aggregate queries run in parallel — we can't fold these into the
+  // base query because each is a different GROUP BY shape.
+  const [upcoming, ratings] = await Promise.all([
+    db
+      .select({
+        driverId: driverAssignments.driverId,
+        upcomingAssignments: sql<number>`COUNT(*)::int`,
+      })
+      .from(driverAssignments)
+      .innerJoin(bookings, eq(driverAssignments.bookingId, bookings.id))
+      .where(
+        and(
+          inArray(driverAssignments.driverId, driverIds),
+          eq(driverAssignments.isActive, true),
+          inArray(bookings.status, ["scheduled", "assigned", "en_route"]),
+          gte(bookings.scheduledAt, now),
+        ),
+      )
+      .groupBy(driverAssignments.driverId),
+    db
+      .select({
+        driverId: reviews.driverId,
+        avg: avg(reviews.rating),
+        total: count(reviews.id),
+      })
+      .from(reviews)
+      .where(inArray(reviews.driverId, driverIds))
+      .groupBy(reviews.driverId),
+  ]);
 
   const upcomingByDriver = new Map(
     upcoming.map((row) => [row.driverId, row.upcomingAssignments]),
   );
-
-  const profiles = await db
-    .select()
-    .from(driverProfiles)
-    .where(inArray(driverProfiles.driverId, driverIds));
-
-  const profileByDriver = new Map(profiles.map((p) => [p.driverId, p]));
-
-  const ratings = await db
-    .select({
-      driverId: reviews.driverId,
-      avg: avg(reviews.rating),
-      total: count(reviews.id),
-    })
-    .from(reviews)
-    .where(inArray(reviews.driverId, driverIds))
-    .groupBy(reviews.driverId);
-
   const ratingByDriver = new Map(ratings.map((r) => [r.driverId, r]));
 
   return ok(c, {
     drivers: driverList.map((driver) => {
-      const profile = profileByDriver.get(driver.id) ?? null;
       const rating = ratingByDriver.get(driver.id);
       return {
-        ...driver,
+        id: driver.id,
+        email: driver.email,
+        name: driver.name,
+        phone: driver.phone,
+        createdAt: driver.createdAt,
         upcomingAssignments: upcomingByDriver.get(driver.id) ?? 0,
-        profile,
+        profile: driver.profile,
         avgRating: rating?.avg ? Number(Number(rating.avg).toFixed(1)) : null,
         totalReviews: rating?.total ?? 0,
       };
@@ -285,14 +294,21 @@ driverRoutes.post(
           },
         });
 
-      broadcastBookingEvent([], {
-        type: "driver_presence",
-        driverId: payload.sub,
-        isOnDuty: true,
-        lat,
-        lon,
-        lastSeenAt: now.toISOString(),
-      });
+      // Skip the SSE rebroadcast if we sent one for this driver recently —
+      // the marker only needs ~one update per ~25s for a smooth UX, but
+      // heartbeats fire every 5s during en_route.
+      const last = lastPresenceBroadcastByDriver.get(payload.sub) ?? 0;
+      if (now.getTime() - last >= PRESENCE_REBROADCAST_MIN_MS) {
+        lastPresenceBroadcastByDriver.set(payload.sub, now.getTime());
+        broadcastBookingEvent([], {
+          type: "driver_presence",
+          driverId: payload.sub,
+          isOnDuty: true,
+          lat,
+          lon,
+          lastSeenAt: now.toISOString(),
+        });
+      }
     }
 
     return ok(c, { heartbeat });
@@ -455,6 +471,11 @@ driverRoutes.put(
       .select({ profilePictureUrl: users.profilePictureUrl })
       .from(users)
       .where(eq(users.id, payload.sub));
+
+    broadcastBookingEvent([payload.sub], {
+      type: "driver_profile_updated",
+      driverId: payload.sub,
+    });
 
     return ok(c, {
       profile,

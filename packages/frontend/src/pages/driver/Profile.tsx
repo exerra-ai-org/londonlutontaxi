@@ -13,6 +13,8 @@ import { useConfirm } from "../../hooks/useConfirm";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { SkeletonCard } from "../../components/Skeleton";
 import { IconUser, IconCar, IconStar } from "../../components/icons";
+import { useAuth } from "../../context/AuthContext";
+import { useRealtimeEvent } from "../../context/RealtimeContext";
 
 const VEHICLE_CLASSES = [
   { value: "regular", label: "Regular" },
@@ -70,6 +72,23 @@ export default function DriverProfile() {
       .catch(() => toast.error("Could not load profile"))
       .finally(() => setLoading(false));
   }, []);
+
+  const { user } = useAuth();
+  // Refetch when admin edits this driver's vehicle, name, or rating moves.
+  useRealtimeEvent("driver_profile_updated", (e) => {
+    if (user?.id === e.driverId) {
+      getMyProfile()
+        .then(({ driver: d }) => populate(d))
+        .catch(() => {});
+    }
+  });
+  useRealtimeEvent("user_updated", (e) => {
+    if (user?.id === e.userId) {
+      getMyProfile()
+        .then(({ driver: d }) => populate(d))
+        .catch(() => {});
+    }
+  });
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

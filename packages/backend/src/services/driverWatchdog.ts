@@ -4,6 +4,7 @@ import { db } from "../db/index";
 import { bookings, driverAssignments, driverHeartbeats } from "../db/schema";
 import { config } from "../config";
 import { classifyHeartbeat } from "./watchdogClassify";
+import { broadcastBookingEvent } from "./broadcaster";
 
 const HEARTBEAT_STALE_MINUTES = config.drivers.heartbeatStaleMinutes;
 const HEARTBEAT_FALLBACK_WINDOWS = config.drivers.heartbeatFallbackWindows;
@@ -152,6 +153,22 @@ export async function runDriverWatchdog(
       oldPrimaryDriverId: row.primaryDriverId,
       newPrimaryDriverId: row.backupDriverId,
     });
+
+    // SSE for the swap. Customer + new primary need to refetch their views;
+    // the old primary needs to refetch and drop the ride from MyRides.
+    // Resolve customerId once for the broadcast — we don't have it from the
+    // candidates query because it doesn't select bookings.customerId.
+    const [bookingRow] = await db
+      .select({ customerId: bookings.customerId })
+      .from(bookings)
+      .where(eq(bookings.id, row.bookingId))
+      .limit(1);
+    if (bookingRow) {
+      broadcastBookingEvent(
+        [bookingRow.customerId, row.primaryDriverId, row.backupDriverId],
+        { type: "drivers_assigned", bookingId: row.bookingId },
+      );
+    }
   }
 
   return {

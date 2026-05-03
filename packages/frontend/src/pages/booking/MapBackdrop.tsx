@@ -174,34 +174,41 @@ export default function MapBackdrop({
       setRoute([]);
       return;
     }
-    const url = `${config.osrmUrl}/route/v1/driving/${pickup.lon},${pickup.lat};${dropoff.lon},${dropoff.lat}?overview=full&geometries=geojson`;
-    let cancelled = false;
-    fetch(url)
-      .then((r) => r.json())
-      .then((data) => {
-        if (cancelled) return;
-        if (data.routes?.[0]) {
-          setRoute(
-            data.routes[0].geometry.coordinates.map(
-              (c: [number, number]) => [c[1], c[0]] as L.LatLngExpression,
-            ),
-          );
-        } else {
+    // Debounce so a fast marker drag fires one OSRM request, not one per
+    // pixel. AbortController cancels the in-flight network request when
+    // a newer drag invalidates it (instead of letting a stale response
+    // race to setRoute first).
+    const ac = new AbortController();
+    const t = setTimeout(() => {
+      const url = `${config.osrmUrl}/route/v1/driving/${pickup.lon},${pickup.lat};${dropoff.lon},${dropoff.lat}?overview=full&geometries=geojson`;
+      fetch(url, { signal: ac.signal })
+        .then((r) => r.json())
+        .then((data) => {
+          if (ac.signal.aborted) return;
+          if (data.routes?.[0]) {
+            setRoute(
+              data.routes[0].geometry.coordinates.map(
+                (c: [number, number]) => [c[1], c[0]] as L.LatLngExpression,
+              ),
+            );
+          } else {
+            setRoute([
+              [pickup.lat, pickup.lon],
+              [dropoff.lat, dropoff.lon],
+            ]);
+          }
+        })
+        .catch(() => {
+          if (ac.signal.aborted) return;
           setRoute([
             [pickup.lat, pickup.lon],
             [dropoff.lat, dropoff.lon],
           ]);
-        }
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setRoute([
-          [pickup.lat, pickup.lon],
-          [dropoff.lat, dropoff.lon],
-        ]);
-      });
+        });
+    }, 250);
     return () => {
-      cancelled = true;
+      clearTimeout(t);
+      ac.abort();
     };
   }, [pickup?.lat, pickup?.lon, dropoff?.lat, dropoff?.lon]);
 

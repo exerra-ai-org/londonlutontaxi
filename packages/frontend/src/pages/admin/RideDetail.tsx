@@ -78,6 +78,15 @@ export default function RideDetail({
   useRealtimeEvent("booking_cancelled", (e) => {
     if (e.bookingId === bookingId) fetchDetail();
   });
+  // Customer name/phone or driver vehicle info — refetch if the user is
+  // a participant of the currently-open ride.
+  useRealtimeEvent("user_updated", (e) => {
+    if (booking?.customerId === e.userId) fetchDetail();
+    if (assignments.some((a) => a.driverId === e.userId)) fetchDetail();
+  });
+  useRealtimeEvent("driver_profile_updated", (e) => {
+    if (assignments.some((a) => a.driverId === e.driverId)) fetchDetail();
+  });
 
   async function handleStatusChange(status: BookingStatus) {
     if (!bookingId) return;

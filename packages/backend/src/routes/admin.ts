@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { and, eq, gte, inArray, sql, avg, count } from "drizzle-orm";
+import { and, eq, gt, gte, inArray, sql, avg, count } from "drizzle-orm";
 import {
   inviteUserSchema,
   driverProfileSchema,
@@ -23,6 +23,7 @@ import { generateAuthToken } from "../lib/tokens";
 import { sendInvitationEmail } from "../services/email";
 import { haversineMeters } from "../services/geofence";
 import { snapPathServer } from "../services/snapPath";
+import { broadcastBookingEvent } from "../services/broadcaster";
 
 // A driver counts as "live" if presence was pinged within this window.
 const LIVE_WINDOW_MS = 2 * 60 * 1000;
@@ -253,6 +254,11 @@ adminRoutes.patch("/users/:id", async (c) => {
     .returning();
   if (!user) return err(c, "User not found", 404);
 
+  // Notify dependents — admin tabs viewing this user, the user's own tabs,
+  // and any tab displaying their name (driver tab showing customer name,
+  // customer tab showing driver name, etc.).
+  broadcastBookingEvent([user.id], { type: "user_updated", userId: user.id });
+
   return ok(c, {
     user: {
       id: user.id,
@@ -292,6 +298,14 @@ adminRoutes.put("/drivers/:id/profile", async (c) => {
     .select()
     .from(driverProfiles)
     .where(eq(driverProfiles.driverId, id));
+
+  // Notify the driver themselves and any tab displaying their vehicle info
+  // (admin lists, customer ride detail, live map side panel).
+  broadcastBookingEvent([id], {
+    type: "driver_profile_updated",
+    driverId: id,
+  });
+
   return ok(c, { profile });
 });
 
@@ -311,6 +325,16 @@ adminRoutes.get("/bookings/:id/path", async (c) => {
   const id = Number(c.req.param("id"));
   if (!Number.isFinite(id)) return err(c, "Invalid ID", 400);
 
+  // Optional `since` ISO timestamp — when provided, return only points
+  // recorded strictly after it. Lets the client re-poll cheaply for active
+  // rides instead of refetching the whole trail.
+  const sinceRaw = c.req.query("since");
+  let since: Date | null = null;
+  if (sinceRaw) {
+    const parsed = new Date(sinceRaw);
+    if (!Number.isNaN(parsed.getTime())) since = parsed;
+  }
+
   // Read the booking shell first so we can decide whether to use the
   // cache. Once a ride is completed the path is immutable, so a cached
   // snap is always correct.
@@ -325,13 +349,22 @@ adminRoutes.get("/bookings/:id/path", async (c) => {
     .limit(1);
   if (!booking) return err(c, "Booking not found", 404);
 
-  // Cache hit: completed ride with a previously-snapped path.
+  // Cache hit: completed ride with a previously-snapped path. The snap is
+  // the whole ride; ignore `since` because the client should replace the
+  // trail wholesale anyway.
   if (booking.status === "completed" && booking.snappedPath) {
     return ok(c, {
       points: [],
       snappedPath: booking.snappedPath as [number, number][],
     });
   }
+
+  const whereClauses = since
+    ? and(
+        eq(driverLocationPoints.bookingId, id),
+        gt(driverLocationPoints.recordedAt, since),
+      )
+    : eq(driverLocationPoints.bookingId, id);
 
   const rows = await db
     .select({
@@ -342,7 +375,7 @@ adminRoutes.get("/bookings/:id/path", async (c) => {
       recordedAt: driverLocationPoints.recordedAt,
     })
     .from(driverLocationPoints)
-    .where(eq(driverLocationPoints.bookingId, id))
+    .where(whereClauses)
     .orderBy(asc(driverLocationPoints.recordedAt));
 
   const accurate = rows.filter(
@@ -374,7 +407,9 @@ adminRoutes.get("/bookings/:id/path", async (c) => {
   // Cache miss: completed ride with no snap yet. Compute now, persist,
   // and serve the snapped path. If the OSRM call fails we fall through
   // to returning raw points; the next request will retry the snap.
-  if (booking.status === "completed" && cleaned.length >= 2) {
+  // Skip when this is an incremental fetch — the snapped path is built
+  // from the *whole* trail, not a tail.
+  if (booking.status === "completed" && cleaned.length >= 2 && !since) {
     const snapped = await snapPathServer(
       cleaned.map((p) => ({
         lat: p.lat,

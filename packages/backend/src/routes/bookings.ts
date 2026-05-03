@@ -307,9 +307,15 @@ bookingRoutes.get("/", async (c) => {
       .where(eq(bookings.customerId, payload.sub))
       .orderBy(desc(bookings.scheduledAt));
   } else if (payload.role === "admin") {
+    const bookingCols = getTableColumns(bookings);
     results = await db
-      .select()
+      .select({
+        ...bookingCols,
+        customerName: users.name,
+        customerPhone: users.phone,
+      })
       .from(bookings)
+      .innerJoin(users, eq(users.id, bookings.customerId))
       .orderBy(desc(bookings.scheduledAt));
   } else {
     // Driver: get bookings where driver has active assignment
@@ -798,10 +804,18 @@ bookingRoutes.post("/:id/fallback", requireRole("admin"), async (c) => {
     notifyDriverFallbackActivated(id, primary.driverId, backup.driverId),
   );
 
-  broadcastBookingEvent([booking.customerId, backup.driverId], {
-    type: "drivers_assigned",
-    bookingId: id,
-  });
+  // Old primary must be in the recipient list — they were just dropped from
+  // the ride and their MyRides view needs to refetch and remove the row.
+  // broadcastBookingChange resolves participants from currently-active
+  // assignments, which by this point excludes the old primary, so we use
+  // the explicit list here.
+  broadcastBookingEvent(
+    [booking.customerId, primary.driverId, backup.driverId],
+    {
+      type: "drivers_assigned",
+      bookingId: id,
+    },
+  );
 
   const updatedAssignments = await db
     .select({
@@ -963,6 +977,15 @@ bookingRoutes.post("/:id/incident", requireRole("customer"), async (c) => {
     "notifyIncident",
     notifyIncident(id, parsed.data.type, parsed.data.message),
   );
+
+  // SSE so admins watching the dispatch board see SOS land immediately,
+  // independent of push notifications (which can be missed on devices
+  // with notifications disabled or backgrounded).
+  broadcastBookingEvent([], {
+    type: "incident_reported",
+    bookingId: id,
+    incidentType: parsed.data.type,
+  });
 
   return ok(c, { incident }, 201);
 });

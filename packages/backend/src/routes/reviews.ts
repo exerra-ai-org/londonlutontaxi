@@ -9,6 +9,7 @@ import {
   type JwtPayload,
 } from "../middleware/auth";
 import { ok, err } from "../lib/response";
+import { broadcastBookingEvent } from "../services/broadcaster";
 
 export const reviewRoutes = new Hono();
 
@@ -96,6 +97,13 @@ reviewRoutes.post("/", async (c) => {
     }
     throw e;
   }
+
+  // Driver's avgRating / totalReviews changed. Admin lists and the driver's
+  // own profile page need to refetch.
+  broadcastBookingEvent([driverId], {
+    type: "driver_profile_updated",
+    driverId,
+  });
 
   return ok(c, { review }, 201);
 });

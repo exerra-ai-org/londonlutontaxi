@@ -50,14 +50,16 @@ export function useDriverHeartbeat(
     }
   }, [bookingId]);
 
+  // GPS watcher: depends only on isActive (i.e. whether there's an active
+  // tracking booking). Splitting this out from the interval effect avoids
+  // tearing down + reacquiring GPS every time the status transitions —
+  // assigned → en_route used to flash "Acquiring GPS…" for a few seconds.
   useEffect(() => {
     if (!isActive) {
       setGpsStatus("idle");
       coordsRef.current = null;
-      if (intervalRef.current) clearInterval(intervalRef.current);
       if (watchRef.current !== null)
         navigator.geolocation?.clearWatch(watchRef.current);
-      intervalRef.current = null;
       watchRef.current = null;
       return;
     }
@@ -85,15 +87,26 @@ export function useDriverHeartbeat(
       setGpsStatus("no-gps");
     }
 
-    beat();
-    intervalRef.current = setInterval(beat, intervalMs);
-
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
       if (watchRef.current !== null)
         navigator.geolocation?.clearWatch(watchRef.current);
-      intervalRef.current = null;
       watchRef.current = null;
+    };
+  }, [isActive]);
+
+  // Beat interval: depends on intervalMs (which changes per status), but
+  // doesn't tear down the GPS watcher when status transitions.
+  useEffect(() => {
+    if (!isActive) {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
+      return;
+    }
+    beat();
+    intervalRef.current = setInterval(beat, intervalMs);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = null;
     };
   }, [isActive, intervalMs, beat]);
 

@@ -228,6 +228,14 @@ export default function CustomerRideDetail() {
   useRealtimeEvent("booking_cancelled", (e) => {
     if (e.bookingId === bookingId) load();
   });
+  // Driver vehicle / rating / name changed — refetch only if the assigned
+  // primary driver is the affected one.
+  useRealtimeEvent("driver_profile_updated", (e) => {
+    if (detail?.assignments.some((a) => a.driverId === e.driverId)) load();
+  });
+  useRealtimeEvent("user_updated", (e) => {
+    if (detail?.assignments.some((a) => a.driverId === e.userId)) load();
+  });
 
   const booking = detail?.booking as CustomerBookingExtra | undefined;
   const primaryAssignment = useMemo(

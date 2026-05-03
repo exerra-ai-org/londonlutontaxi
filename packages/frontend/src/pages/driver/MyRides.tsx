@@ -69,7 +69,13 @@ export default function MyRides() {
   );
 
   const { user } = useAuth();
-  const { isOnDuty, toggleOnDuty } = useDriverPresence(user?.id ?? null);
+  // While there's an active tracking booking, useDriverHeartbeat owns the
+  // GPS watcher and the heartbeat endpoint mirrors presence. Suppress the
+  // separate presence GPS watcher to halve battery + redundant requests.
+  const { isOnDuty, toggleOnDuty } = useDriverPresence(
+    user?.id ?? null,
+    trackingBooking != null,
+  );
 
   if (loading) {
     return (

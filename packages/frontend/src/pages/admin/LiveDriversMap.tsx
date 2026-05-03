@@ -22,9 +22,11 @@ const TILES =
 const TILE_ATTR =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>';
 
-// Treat absence-from-server-feed as still live for this long, so a single
-// dropped poll cycle doesn't yank a driver off the map.
-const REFRESH_MS = 15_000;
+// Belt-and-braces canonical-state poll. SSE (driver_presence,
+// driver_location patch, drivers_assigned, booking_*) keeps the map
+// fresh between ticks; the poll exists only to recover from a
+// missed/dropped event. 60s is plenty given full SSE coverage.
+const REFRESH_MS = 60_000;
 
 // London / Luton bounding fallback for the initial view when no drivers
 // have yet reported. Centered roughly on Luton Airport.
@@ -137,12 +139,11 @@ export default function LiveDriversMap() {
   });
 
   useRealtimeEvent("driver_location", (e) => {
-    // driver_location is per-booking, not per-driver. We can't map booking →
-    // driver without an extra cache, so just trigger a refetch to pick up the
-    // canonical positions. Cheap (~few ms) and keeps things consistent.
-    refresh();
-    // If the moving driver is the one we're inspecting, extend the
-    // breadcrumb client-side instead of refetching the whole path.
+    // The marker stays fresh via driver_presence (heartbeat broadcasts both,
+    // dedup'd to ~25s), and the full driver list is reconciled by the 60s
+    // belt-and-braces poll. So we no longer call refresh() here — that
+    // produced 12 heavy joins/min per on-ride driver. We just extend the
+    // breadcrumb of the inspected booking in place.
     setBreadcrumb((prev) => {
       const sel = selectedId != null ? drivers.get(selectedId) : null;
       if (!sel?.activeBooking || sel.activeBooking.id !== e.bookingId) {
@@ -161,12 +162,39 @@ export default function LiveDriversMap() {
         },
       ];
     });
+    // Patch the marker position immediately for the moving driver. This
+    // bridges the gap between presence rebroadcasts (every ~25s) and gives
+    // the live admin map smooth-ish movement on the 5s heartbeat cadence.
+    setDrivers((prev) => {
+      // Find the driver whose activeBooking matches the event.
+      let touchedId: number | null = null;
+      for (const [id, d] of prev) {
+        if (d.activeBooking?.id === e.bookingId) {
+          touchedId = id;
+          break;
+        }
+      }
+      if (touchedId == null) return prev;
+      const next = new Map(prev);
+      const existing = next.get(touchedId)!;
+      next.set(touchedId, {
+        ...existing,
+        lat: e.lat,
+        lon: e.lon,
+        lastSeenAt: e.updatedAt,
+        source: "sse",
+      });
+      return next;
+    });
   });
 
   // Re-fetch on assignment changes too — driver's activeBooking just changed.
   useRealtimeEvent("drivers_assigned", refresh);
   useRealtimeEvent("booking_updated", refresh);
   useRealtimeEvent("booking_cancelled", refresh);
+  // Vehicle/name/phone changed for someone visible on the map.
+  useRealtimeEvent("driver_profile_updated", refresh);
+  useRealtimeEvent("user_updated", refresh);
 
   const driverList = useMemo(() => Array.from(drivers.values()), [drivers]);
   const selected =
@@ -230,14 +258,14 @@ export default function LiveDriversMap() {
     };
   }, [selected?.activeBooking?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch the planned pickup→dropoff polyline whenever we select an on-ride
-  // driver. We cache nothing: the polyline is small and OSRM is fast.
-  const lastFetchedBookingRef = useRef<number | null>(null);
+  // Cache planned routes by bookingId so re-selecting a driver doesn't
+  // refetch from OSRM. Bounded; we drop oldest entry past the cap.
+  const ROUTE_CACHE_CAP = 50;
+  const routeCacheRef = useRef<Map<number, L.LatLngExpression[]>>(new Map());
   useEffect(() => {
     setRouteError(null);
     if (!selected?.activeBooking) {
       setRoute([]);
-      lastFetchedBookingRef.current = null;
       return;
     }
     const b = selected.activeBooking;
@@ -251,32 +279,42 @@ export default function LiveDriversMap() {
       setRouteError("Booking is missing pickup/dropoff coordinates");
       return;
     }
-    if (lastFetchedBookingRef.current === b.id) return;
-    lastFetchedBookingRef.current = b.id;
+    const cached = routeCacheRef.current.get(b.id);
+    if (cached) {
+      setRoute(cached);
+      return;
+    }
 
+    const fallback: L.LatLngExpression[] = [
+      [b.pickupLat as number, b.pickupLon as number],
+      [b.dropoffLat as number, b.dropoffLon as number],
+    ];
     const url = `${config.osrmUrl}/route/v1/driving/${b.pickupLon},${b.pickupLat};${b.dropoffLon},${b.dropoffLat}?overview=full&geometries=geojson`;
+    let cancelled = false;
     fetch(url)
       .then((res) => res.json())
       .then((data) => {
-        if (data.routes?.[0]) {
-          setRoute(
-            data.routes[0].geometry.coordinates.map(
+        if (cancelled) return;
+        const points: L.LatLngExpression[] = data.routes?.[0]
+          ? data.routes[0].geometry.coordinates.map(
               (c: [number, number]) => [c[1], c[0]] as L.LatLngExpression,
-            ),
-          );
-        } else {
-          setRoute([
-            [b.pickupLat as number, b.pickupLon as number],
-            [b.dropoffLat as number, b.dropoffLon as number],
-          ]);
+            )
+          : fallback;
+        // Cap the cache by evicting the oldest entry on overflow.
+        const cache = routeCacheRef.current;
+        if (cache.size >= ROUTE_CACHE_CAP) {
+          const firstKey = cache.keys().next().value;
+          if (firstKey !== undefined) cache.delete(firstKey);
         }
+        cache.set(b.id, points);
+        setRoute(points);
       })
       .catch(() => {
-        setRoute([
-          [b.pickupLat as number, b.pickupLon as number],
-          [b.dropoffLat as number, b.dropoffLon as number],
-        ]);
+        if (!cancelled) setRoute(fallback);
       });
+    return () => {
+      cancelled = true;
+    };
   }, [selected]);
 
   const fitPoints: [number, number][] = useMemo(() => {

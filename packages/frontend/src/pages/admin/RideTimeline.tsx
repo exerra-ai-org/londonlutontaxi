@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import type { Booking } from "shared/types";
 import { listAllBookings } from "../../api/admin";
 import { useRealtimeEvent } from "../../context/RealtimeContext";
+import { useToast } from "../../context/ToastContext";
 import { formatPrice, formatDate, statusLabel } from "../../lib/format";
 import { SkeletonCard } from "../../components/Skeleton";
 import AlertsBanner from "./AlertsBanner";
@@ -68,6 +69,7 @@ export default function RideTimeline() {
   const [isDesktop, setIsDesktop] = useState(
     () => window.matchMedia("(min-width: 768px)").matches,
   );
+  const toast = useToast();
   const fetchBookings = useCallback(async () => {
     try {
       const data = await listAllBookings();
@@ -87,6 +89,17 @@ export default function RideTimeline() {
   useRealtimeEvent("booking_updated", fetchBookings);
   useRealtimeEvent("drivers_assigned", fetchBookings);
   useRealtimeEvent("booking_cancelled", fetchBookings);
+  // Customer SOS / contact-admin lands here. Surface as a toast and select
+  // the affected booking so the dispatcher can act immediately.
+  useRealtimeEvent("incident_reported", (e) => {
+    if (e.incidentType === "emergency") {
+      toast.error(`SOS — Booking #${e.bookingId}`);
+    } else {
+      toast.success(`Contact request — Booking #${e.bookingId}`);
+    }
+    setSelectedId(e.bookingId);
+    fetchBookings();
+  });
 
   useEffect(() => {
     const media = window.matchMedia("(min-width: 768px)");
@@ -235,7 +248,7 @@ export default function RideTimeline() {
                 shown
               </p>
             </div>
-            <span className="mono-label">30s refresh</span>
+            <span className="mono-label">Live</span>
           </div>
 
           {filtered.length === 0 ? (
@@ -302,7 +315,10 @@ export default function RideTimeline() {
           <RideDetail
             bookingId={selectedBooking?.id ?? null}
             onClose={() => setSelectedId(null)}
-            onUpdated={fetchBookings}
+            // SSE (booking_updated/drivers_assigned/booking_cancelled)
+            // already triggers fetchBookings via useRealtimeEvent above —
+            // re-firing here doubled the request.
+            onUpdated={() => {}}
             variant="panel"
           />
         </aside>
@@ -312,7 +328,7 @@ export default function RideTimeline() {
         <RideDetail
           bookingId={selectedId}
           onClose={() => setSelectedId(null)}
-          onUpdated={fetchBookings}
+          onUpdated={() => {}}
           variant="modal"
         />
       )}

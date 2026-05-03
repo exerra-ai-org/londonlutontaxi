@@ -42,6 +42,9 @@ export default function DriverManagement() {
   useRealtimeEvent("drivers_assigned", load);
   useRealtimeEvent("booking_updated", load);
   useRealtimeEvent("booking_cancelled", load);
+  // Driver vehicle, name, phone, or rating changed.
+  useRealtimeEvent("driver_profile_updated", load);
+  useRealtimeEvent("user_updated", load);
 
   async function handleInvite(e: React.FormEvent) {
     e.preventDefault();

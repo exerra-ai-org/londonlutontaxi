@@ -18,6 +18,13 @@ export type BroadcastEvent =
     }
   | { type: "drivers_assigned"; bookingId: number }
   | { type: "booking_cancelled"; bookingId: number }
+  | {
+      type: "incident_reported";
+      bookingId: number;
+      incidentType: "emergency" | "contact_admin";
+    }
+  | { type: "user_updated"; userId: number }
+  | { type: "driver_profile_updated"; driverId: number }
   | { type: "ping" }
   | { type: "overflow" };
 

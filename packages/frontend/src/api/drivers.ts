@@ -105,11 +105,12 @@ export interface BookingPathPoint {
 // its own client-side snap on points.
 export type SnappedPolyline = [number, number][];
 
-export function getBookingPath(bookingId: number) {
+export function getBookingPath(bookingId: number, since?: string) {
+  const qs = since ? `?since=${encodeURIComponent(since)}` : "";
   return api.get<{
     points: BookingPathPoint[];
     snappedPath?: SnappedPolyline | null;
-  }>(`/admin/bookings/${bookingId}/path`);
+  }>(`/admin/bookings/${bookingId}/path${qs}`);
 }
 
 export function sendPresence(input: {

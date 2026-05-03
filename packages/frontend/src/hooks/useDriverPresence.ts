@@ -25,7 +25,16 @@ function writeDuty(driverId: number, value: boolean): void {
   }
 }
 
-export function useDriverPresence(driverId: number | null): {
+// `suppressed` is set when another hook (useDriverHeartbeat) is already
+// running watchPosition + sending pings on the driver's behalf. The
+// backend mirrors heartbeat → driver_presence so the live map still
+// updates; running a second GPS watcher and ping interval here is pure
+// waste. The toggle state still persists, so flipping back to an
+// idle (no-ride) on-duty state resumes presence pings cleanly.
+export function useDriverPresence(
+  driverId: number | null,
+  suppressed = false,
+): {
   isOnDuty: boolean;
   toggleOnDuty: () => void;
   gpsStatus: GpsStatus;
@@ -68,7 +77,7 @@ export function useDriverPresence(driverId: number | null): {
   useEffect(() => {
     if (driverId == null) return;
 
-    if (!isOnDuty) {
+    if (!isOnDuty || suppressed) {
       setGpsStatus("idle");
       coordsRef.current = null;
       firstCoordPingDoneRef.current = false;
@@ -77,8 +86,11 @@ export function useDriverPresence(driverId: number | null): {
         navigator.geolocation?.clearWatch(watchRef.current);
       intervalRef.current = null;
       watchRef.current = null;
-      // One final ping so the server clears the live row.
-      ping(false);
+      // Send a final off-duty ping ONLY when the user actually toggled off.
+      // If we're suppressed by an active heartbeat, the heartbeat is
+      // mirroring driver_presence on the server already and a "go off
+      // duty" ping would falsely yank the marker off the live map.
+      if (!isOnDuty) ping(false);
       return;
     }
 
@@ -117,7 +129,7 @@ export function useDriverPresence(driverId: number | null): {
       intervalRef.current = null;
       watchRef.current = null;
     };
-  }, [driverId, isOnDuty, ping]);
+  }, [driverId, isOnDuty, suppressed, ping]);
 
   const toggleOnDuty = useCallback(() => {
     if (driverId == null) return;

@@ -28,6 +28,7 @@ import { generateAuthToken, hashAuthToken } from "../lib/tokens";
 import { authMiddleware, type JwtPayload } from "../middleware/auth";
 import { createRateLimiter } from "../middleware/rateLimit";
 import { sendMagicLinkEmail, sendPasswordResetEmail } from "../services/email";
+import { broadcastBookingEvent } from "../services/broadcaster";
 
 export const authRoutes = new Hono();
 
@@ -500,6 +501,11 @@ authRoutes.patch("/me", authMiddleware, async (c) => {
 
   // Re-issue cookie with updated name in JWT
   await issueAuthCookie(c, user);
+
+  // SSE so other tabs of this user (and admin views displaying this user)
+  // refetch their cached name/phone. BroadcastChannel handles same-user
+  // tab sync; this covers cross-user observers like admins.
+  broadcastBookingEvent([user.id], { type: "user_updated", userId: user.id });
 
   return ok(c, {
     user: {
